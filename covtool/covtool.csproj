@@ -5,10 +5,10 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>10.0.0</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{F0FC4550-15A9-42C0-964D-28389047A91C}</ProjectGuid>
+    <ProjectGuid>{ED3D7A8F-65C4-4002-AC7D-207F1768CD4E}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>covem</RootNamespace>
-    <AssemblyName>covem</AssemblyName>
+    <RootNamespace>covtool</RootNamespace>
+    <AssemblyName>covtool</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,8 +32,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="Mono.Debugger.Soft" />
-    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

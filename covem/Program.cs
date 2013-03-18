@@ -4,57 +4,22 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+using XR.Mono.Cover;
+
 namespace covem
 {
-	public class VisitedCodeEvent
-	{
-		public VisitedCodeEvent ()
-		{
-			Logged = DateTime.Now;
-		}
-
-		public int Thread { get; set; }
-
-		public string MethodName { get; set; }
-
-		public EventType Type { get; set; }
-
-		public string SourceFile { get; set; }
-
-		public int LineNumber { get; set; }
-
-		public DateTime Logged { get; private set; }
-
-		public string LogSymbol { 
-			get {
-				switch ( Type ) {
-				case EventType.MethodEntry:
-					return ">>";
-				case EventType.MethodExit:
-					return " <";
-				case EventType.Exception:
-					return "ex";
-				case EventType.ThreadStart:
-					return "t>";
-				case EventType.ThreadDeath:
-					return "t<";
-				case EventType.UserBreak:
-					return "b>"; // method caller location
-				default:
-					return "  ";
-				}
-			}
-		}
-	}
 
 	class MainClass
 	{
 		static Regex filter = new Regex ("^covem.");
 		static List<VisitedCodeEvent> log = new List<VisitedCodeEvent> ();
+		static VirtualMachine virtualMachine;
+		static List<BreakpointEventRequest> breakpoints = new List<BreakpointEventRequest> ();
+		static StepEventRequest stepreq = null;
 
-		static string GetFullMethodName( MethodMirror m )
+		static string GetFullMethodName (MethodMirror m)
 		{
-			return string.Format("{0}.{1}", m.DeclaringType.FullName, m.Name );
+			return string.Format ("{0}.{1}", m.DeclaringType.FullName, m.Name);
 		}
 
 		public static void FilterEvent (Event evt)
@@ -75,7 +40,6 @@ namespace covem
 			if (source == null && mexp == null)
 				return;
 
-
 			var frame = evt.Thread.GetFrames ().FirstOrDefault ();
 
 			if (frame != null) {
@@ -94,10 +58,12 @@ namespace covem
 								LineNumber = caller.LineNumber
 							};
 						log.Add (at);
-						if ( at.LineNumber < 1 ){
-							var tmp = caller.Method.LineNumbers.FirstOrDefault();
-							if ( tmp > 0 ) at.LineNumber = tmp;
+						if (at.LineNumber < 1) {
+							var tmp = caller.Method.LineNumbers.FirstOrDefault ();
+							if (tmp > 0)
+								at.LineNumber = tmp;
 						}
+
 					}
 
 					var me = new VisitedCodeEvent () {
@@ -108,6 +74,31 @@ namespace covem
 						};
 					log.Add (me);
 
+					// ok, we are calling a method, if we care about this namespace, set a breakpoint on every line of the method body
+					if (filter.IsMatch (me.MethodName)) {
+
+
+						virtualMachine.Resume ();
+
+						//foreach (var o in oss) {
+						// var location = frame.Method.LocationAtILOffset( o );
+						//var beq = virtualMachine.SetBreakpoint (frame.Method, o);
+						//breakpoints.Add (beq);
+
+						//}
+					}
+
+					break;
+
+				case EventType.Step:
+					stepreq = null;
+					break;
+
+				case EventType.UserBreak:
+					var bp = evt as BreakpointEvent;
+					if (bp != null) {
+						//Console.Error.WriteLine( bp.
+					}
 					break;
 
 				case EventType.Exception:
@@ -145,49 +136,60 @@ namespace covem
 		{
 
 			if (args.Length == 0) {
-				var v = VirtualMachineManager.Launch (new String[] { "covem.exe", "x" });
+				virtualMachine = VirtualMachineManager.Launch (new String[] { "covem.exe", "x" });
 
-				v.EnableEvents (new EventType[] {
+				virtualMachine.EnableEvents (new EventType[] {
 					EventType.Exception,
+					EventType.UserBreak,
 					EventType.ThreadStart,
 					EventType.ThreadDeath,
 					EventType.MethodEntry, 
 					EventType.MethodExit });
 
-				v.Process.Start ();
+				virtualMachine.Process.Start ();
+				//virtualMachine.ClearAllBreakpoints ();
+				//var oss = frame.Method.ILOffsets;
+				if (stepreq == null) {
+					var sr = virtualMachine.CreateStepRequest (virtualMachine.GetThreads ().First ());
+					sr.Depth = StepDepth.Over;
+					sr.Size = StepSize.Line;
+					sr.Enabled = true;
+					stepreq = sr;
+				}
 
 				EventSet es = null;
 
 				do {
-					es = v.GetNextEventSet ();
+					es = virtualMachine.GetNextEventSet ();
 					if (es != null) {
 
 						foreach (var et in es.Events) {
-							if ( et is ExceptionEvent ) {
-								Console.Error.WriteLine(et);
-							}
+							Console.Error.WriteLine (et);
+
 							FilterEvent (et);
 						}
 						try {
-							v.Resume ();
-						} catch {
-							break;
+
+							virtualMachine.Resume ();
+
+						} catch (Exception ex) {
+							//break;
 						}
 					} else { 
 						System.Threading.Thread.Sleep (50);
 					}
 
-				} while ( !v.Process.HasExited );
+				} while ( !virtualMachine.Process.HasExited );
 
 
-				foreach ( var e in log ) {
-					if ( filter.IsMatch( e.MethodName ) ) {
+				foreach (var e in log) {
+					if (filter.IsMatch (e.MethodName)) {
 
-						Console.Error.WriteLine("{0}.{1} {2} {3} {4}:{5}", e.Logged.ToString("s"), e.Logged.Millisecond,
+						Console.Error.WriteLine ("{0}.{1} {2} {3} {4}:{5}", e.Logged.ToString ("s"), e.Logged.Millisecond,
 						                    e.LogSymbol,
 					                        e.MethodName,
 					                        e.SourceFile,
-					                        e.LineNumber );
+					                        e.LineNumber);
 
 					}
 				}
