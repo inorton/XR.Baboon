@@ -13,6 +13,8 @@ namespace covtool
 
 
 			ct.Cover ( "^testsubject" );
+
+			ct.Report();
 		}
 	}
 }

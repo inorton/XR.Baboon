@@ -40,6 +40,23 @@ namespace XR.Mono.Cover
 						if ( !logAssemblies.Contains( tl.Type.Assembly ) ) {
 							logAssemblies.Add( tl.Type.Assembly );
 							UpdateStepFilter();
+							var meths = tl.Type.GetMethods();
+							// make a record for all types in this assembly
+							foreach ( var m in meths ){
+								CodeRecord rec;
+								if ( !records.TryGetValue( m.FullName, out rec ) )
+								{
+									rec = new CodeRecord() { 
+										ClassName = m.DeclaringType.CSharpName,
+										Name = m.Name,
+										FullMethodName = m.FullName,
+										Lines = new List<int>( m.LineNumbers ),
+										LineHits = new List<int>(),
+										SourceFile = m.SourceFile,
+									};
+									records.Add( m.FullName, rec );
+								} 
+							}
 						}
 					}
 				}
@@ -79,20 +96,12 @@ namespace XR.Mono.Cover
 				SetupThreadStep( met );
 				CodeRecord rec = null;
 				//Console.Error.WriteLine( met.Method.FullName );
-				if ( !records.TryGetValue( met.Method.FullName, out rec ) )
+				if ( records.TryGetValue( met.Method.FullName, out rec ) )
 				{
-					rec = new CodeRecord() { 
-						ClassName = met.Method.DeclaringType.CSharpName,
-						MethodName = met.Method.Name,
-						Lines = new List<int>( met.Method.LineNumbers ),
-						LineHits = new List<int>(),
-						SourceFile = met.Method.SourceFile,
-					};
-					records.Add( met.Method.FullName, rec );
-				} 
-				rec.CallCount++;
-				if ( rec.Lines.Count > 0 ) {
-					rec.LineHits = new List<int>() { rec.Lines[0] };
+					rec.CallCount++;
+					if ( rec.Lines.Count > 0 ) {
+						rec.LineHits = new List<int>() { rec.Lines[0] };
+					}
 				}
 			}
 			return met != null;
@@ -106,8 +115,9 @@ namespace XR.Mono.Cover
 				CodeRecord rec = null;
 				if ( records.TryGetValue( step.Method.FullName, out rec ) ){
 					var loc = step.Thread.GetFrames () [0].Location;
-					rec.LineHits.Add( loc.LineNumber );
-					Console.Error.WriteLine( loc );
+					if ( loc.LineNumber > 0 ) {
+						rec.LineHits.Add( loc.LineNumber );
+					}
 				}
 			}
 			return step != null;
@@ -154,6 +164,26 @@ namespace XR.Mono.Cover
 		public void Resume ()
 		{
 			VirtualMachine.Resume ();
+		}
+
+		public void Report() {
+			var rv = records.Values.ToArray();
+			Array.Sort( rv, (CodeRecord x, CodeRecord y) =>  {
+				var xa = string.Format( x.ClassName + ":" + x.Name );
+				var ya = string.Format( y.ClassName + ":" + y.Name );
+
+				return xa.CompareTo(ya);
+			} );
+
+			foreach ( var r in rv ) {
+				if ( r.Lines.Count > 0 ){
+					Console.WriteLine(r);
+					foreach ( var l in r.Lines.Distinct() ){
+						var hits = (from x in r.LineHits where x == l select x).Count();
+						Console.WriteLine( "{0}:{1:0000} {2}", r.SourceFile, l, hits );
+					}
+				}
+			}
 		}
 	}
 
