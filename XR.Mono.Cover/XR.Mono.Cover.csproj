@@ -38,6 +38,7 @@
     <Compile Include="CoverHost.cs" />
     <Compile Include="VisitedCodeEvent.cs" />
     <Compile Include="CoverHostFactory.cs" />
+    <Compile Include="CallRecord.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

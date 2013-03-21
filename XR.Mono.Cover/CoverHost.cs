@@ -2,6 +2,7 @@ using System;
 using Mono.Debugger.Soft;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace XR.Mono.Cover
 {
@@ -26,7 +27,7 @@ namespace XR.Mono.Cover
 
 		}
 
-		public void Setup (params string[] typeMatchPatterns)
+		public void Cover (params string[] typeMatchPatterns)
 		{
 			bool firstMethod = true;
 			var b = VirtualMachine.CreateMethodEntryRequest ();
@@ -42,20 +43,39 @@ namespace XR.Mono.Cover
 					var met = e as MethodEntryEvent;
 
 					if (met != null) {
-						Console.WriteLine (met.Method.FullName);
+						//Console.WriteLine (met.Method.FullName);
 						if (firstMethod) {
 							s = VirtualMachine.CreateStepRequest (met.Thread);
+
+							var asms = VirtualMachine.RootDomain.GetAssemblies ();
+							foreach (var a in asms) {
+								Console.WriteLine ("asm {0}", a.GetName ());
+								if (a.GetName ().Name == "testsubject") {
+									s.AssemblyFilter = new List<AssemblyMirror>{ a };
+								}
+							}
+
+
+
 							s.Filter = StepFilter.DebuggerHidden;
+
 							s.Size = StepSize.Line;
 							s.Depth = StepDepth.Into;
 							s.Enabled = true;
+							stepreqs [met.Thread.Id] = s;
 						}
 						firstMethod = false;
 					}
 
 					var step = e as StepEvent;
 					if (step != null) {
-						Console.WriteLine (step.Thread.GetFrames () [0].Location);
+						var loc = step.Thread.GetFrames () [0].Location;
+
+						Console.WriteLine ("{0}:{1} ", loc.SourceFile, loc.LineNumber);
+						Console.WriteLine (loc.Method.Name);
+						foreach ( var l in loc.Method.LineNumbers.Distinct() ){
+							Console.WriteLine(" {0}", l );
+						}
 					}
 
 					if (e is VMDisconnectEvent)
