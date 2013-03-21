@@ -39,7 +39,6 @@ public partial class MainWindow
 		this.notebook1.CanFocus = true;
 		this.notebook1.Name = "notebook1";
 		this.notebook1.CurrentPage = -1;
-		this.notebook1.EnablePopup = true;
 		this.notebook1.Scrollable = true;
 		this.notebook1.BorderWidth = ((uint)(3));
 		this.hpaned1.Add (this.notebook1);

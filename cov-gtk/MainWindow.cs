@@ -1,56 +1,53 @@
 using System;
+using System.IO;
 using Gtk;
 using GtkSourceView;
 using covgtk;
+using System.Collections.Generic;
 
 public partial class MainWindow: Gtk.Window
 {	
-	public MainWindow (): base (Gtk.WindowType.Toplevel)
+
+	Dictionary<string,SourceView> sourceFiles = new Dictionary<string, SourceView> ();
+
+	SourceLanguageManager sourceManager = new SourceLanguageManager ();
+
+	TextTag visitedTag = new TextTag ("visited_green") { Background = "#ccffcc" };
+
+	public void RenderCoverage (string filename, SourceBuffer buf)
 	{
-		Build ();
+		buf.Text = File.ReadAllText (filename);
+	}
 
-		var manager = new SourceLanguageManager ();
-		SourceLanguage language = manager.GetLanguage ("c-sharp");
-
+	public void OpenSourceFile (string filename)
+	{
+		SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
 		var buf = new SourceBuffer (language);
 
-		var tag = new TextTag ("green_bg");
-		tag.Background = "#00ff00";
-
-		buf.TagTable.Add (tag);
-
+		buf.TagTable.Add (visitedTag);
 		buf.HighlightSyntax = true;
 
 		var sv = new SourceView (buf);
 		sv.Editable = false;
 		sv.ShowLineNumbers = true;
-
+		
 		var sw = new ScrolledWindow ();
-
-		buf.Text = @" 
-
-using System;
-
-public class Fooo {
-
-  public static void Run() {
-    Console.WriteLine(""go!"");
-  }
-
-}
-
-";
-
-
-
-		var iter1 = buf.GetIterAtLineOffset (8, 0);
-		var iter2 = buf.GetIterAtLineOffset (9, 0);
-		buf.ApplyTag (tag, iter1, iter2);
-
+		
 		sw.Add (sv);
 
+		var fname = System.IO.Path.GetFileName (filename);
 
-		CloserTabLabel.InsertTabPage (notebook1, sw, "foo.cs");
+		CloserTabLabel.InsertTabPage (notebook1, sw, fname);
+
+		RenderCoverage (filename, buf);
+	}
+
+	public MainWindow (): base (Gtk.WindowType.Toplevel)
+	{
+		Build ();
+
+		OpenSourceFile ("../../MainWindow.cs");
+		OpenSourceFile ("../../Program.cs");
 
 		this.ShowAll ();
 

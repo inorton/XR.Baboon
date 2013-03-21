@@ -43,7 +43,6 @@
             <property name="MemberName" />
             <property name="CanFocus">True</property>
             <property name="CurrentPage">-1</property>
-            <property name="EnablePopup">True</property>
             <property name="Scrollable">True</property>
             <property name="BorderWidth">3</property>
           </widget>
@@ -86,6 +85,61 @@
             <property name="AutoSize">True</property>
             <property name="Expand">False</property>
             <property name="Fill">False</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="Gtk.Bin" id="covgtk.SourceHeaderBlock" design-size="616 68">
+    <property name="MemberName" />
+    <property name="Visible">False</property>
+    <child>
+      <widget class="Gtk.VBox" id="vbox1">
+        <property name="MemberName" />
+        <property name="Spacing">4</property>
+        <child>
+          <widget class="Gtk.Label" id="heading">
+            <property name="MemberName" />
+            <property name="Xpad">3</property>
+            <property name="Xalign">0</property>
+            <property name="LabelProp" translatable="yes">heading</property>
+            <property name="Wrap">True</property>
+            <property name="Ellipsize">End</property>
+          </widget>
+          <packing>
+            <property name="Position">0</property>
+            <property name="AutoSize">True</property>
+            <property name="Expand">False</property>
+            <property name="Fill">False</property>
+            <property name="Padding">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="Gtk.Label" id="subheading">
+            <property name="MemberName" />
+            <property name="Xpad">3</property>
+            <property name="Xalign">0</property>
+            <property name="LabelProp" translatable="yes">subheading</property>
+            <property name="Wrap">True</property>
+            <property name="Ellipsize">End</property>
+          </widget>
+          <packing>
+            <property name="Position">1</property>
+            <property name="AutoSize">True</property>
+            <property name="Expand">False</property>
+            <property name="Fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="Gtk.ProgressBar" id="percentage">
+            <property name="MemberName" />
+          </widget>
+          <packing>
+            <property name="Position">2</property>
+            <property name="AutoSize">True</property>
+            <property name="Expand">False</property>
+            <property name="Fill">False</property>
+            <property name="Padding">1</property>
           </packing>
         </child>
       </widget>
