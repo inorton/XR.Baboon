@@ -6,23 +6,48 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <widget-library name="gnomedesktop-sharp, Version=2.20.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <widget-library name="../bin/Debug/cov-gtk.exe" internal="true" />
-    <widget-library name="../../../../../../opt/mono/lib/mono/gnomedesktop-sharp-2.20/gnomedesktop-sharp.dll" />
-    <widget-library name="../../../../../../opt/mono/lib/mono/gtksourceview2-sharp-2.0/gtksourceview2-sharp.dll" />
+    <widget-library name="gtksourceview2-sharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
   </import>
   <widget class="Gtk.Window" id="MainWindow" design-size="400 300">
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
     <property name="WindowPosition">CenterOnParent</property>
+    <property name="DefaultWidth">700</property>
+    <property name="DefaultHeight">440</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
-      <widget class="Gtk.Notebook" id="notebook1">
+      <widget class="Gtk.HPaned" id="hpaned1">
         <property name="MemberName" />
         <property name="CanFocus">True</property>
-        <property name="CurrentPage">-1</property>
-        <property name="EnablePopup">True</property>
-        <property name="Scrollable">True</property>
-        <property name="BorderWidth">3</property>
+        <property name="Position">152</property>
+        <child>
+          <widget class="Gtk.ScrolledWindow" id="GtkScrolledWindow">
+            <property name="MemberName" />
+            <property name="ShadowType">In</property>
+            <child>
+              <widget class="Gtk.TreeView" id="treeview1">
+                <property name="MemberName" />
+                <property name="CanFocus">True</property>
+                <property name="ShowScrollbars">True</property>
+              </widget>
+            </child>
+          </widget>
+          <packing>
+            <property name="Resize">False</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="Gtk.Notebook" id="notebook1">
+            <property name="MemberName" />
+            <property name="CanFocus">True</property>
+            <property name="CurrentPage">-1</property>
+            <property name="EnablePopup">True</property>
+            <property name="Scrollable">True</property>
+            <property name="BorderWidth">3</property>
+          </widget>
+        </child>
       </widget>
     </child>
   </widget>

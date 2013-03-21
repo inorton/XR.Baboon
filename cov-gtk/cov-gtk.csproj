@@ -9,6 +9,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>covgtk</RootNamespace>
     <AssemblyName>cov-gtk</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -39,11 +40,11 @@
     <Reference Include="pango-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="atk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <Reference Include="gnomedesktop-sharp">
-      <HintPath>..\..\..\..\..\opt\mono\lib\mono\gnomedesktop-sharp-2.20\gnomedesktop-sharp.dll</HintPath>
+    <Reference Include="gnomedesktop-sharp, Version=2.20.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <Private>False</Private>
     </Reference>
-    <Reference Include="gtksourceview2-sharp">
-      <HintPath>..\..\..\..\..\opt\mono\lib\mono\gtksourceview2-sharp-2.0\gtksourceview2-sharp.dll</HintPath>
+    <Reference Include="gtksourceview2-sharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
