@@ -39,7 +39,7 @@ namespace XR.Mono.Cover
 					if ( rx.IsMatch( tl.Type.FullName ) ){
 						if ( !logAssemblies.Contains( tl.Type.Assembly ) ) {
 							logAssemblies.Add( tl.Type.Assembly );
-							UpdateStepFilter();
+
 							var meths = tl.Type.GetMethods();
 							// make a record for all types in this assembly
 							foreach ( var m in meths ){
@@ -64,14 +64,6 @@ namespace XR.Mono.Cover
 			return tl != null;
 		}
 
-		void UpdateStepFilter( ) {
-			foreach ( var step in stepreqs.Values ){
-				step.Enabled = false;
-				step.AssemblyFilter = new List<AssemblyMirror>( logAssemblies );
-				step.Enabled = step.AssemblyFilter.Count > 0 || (typeMatchers.Count < 1);
-			}
-		}
-
 		public bool CheckMethodRequests( Event evt )
 		{
 			return CheckMethodEntryRequest( evt );
@@ -85,7 +77,7 @@ namespace XR.Mono.Cover
 				s.Size = StepSize.Line;
 				s.Depth = StepDepth.Into;
 				stepreqs [meth.Thread.Id] = s;
-				UpdateStepFilter();
+				s.Enabled = true;
 			}
 		}
 
@@ -99,9 +91,12 @@ namespace XR.Mono.Cover
 				if ( records.TryGetValue( met.Method.FullName, out rec ) )
 				{
 					rec.CallCount++;
-					if ( rec.Lines.Count > 0 ) {
-						rec.LineHits = new List<int>() { rec.Lines[0] };
-					}
+					if ( rec.LineHits == null )
+						rec.LineHits = new List<int>();
+
+					if ( rec.Lines.Count > 0 ) 
+						rec.LineHits.Add( rec.Lines[0] );
+
 				}
 			}
 			return met != null;
@@ -117,6 +112,8 @@ namespace XR.Mono.Cover
 					var loc = step.Thread.GetFrames () [0].Location;
 					if ( loc.LineNumber > 0 ) {
 						rec.LineHits.Add( loc.LineNumber );
+						//Console.Error.WriteLine( loc );
+						//System.Threading.Thread.Sleep(1000);
 					}
 				}
 			}
