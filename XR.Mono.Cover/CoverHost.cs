@@ -11,77 +11,115 @@ namespace XR.Mono.Cover
 	{
 		public VirtualMachine VirtualMachine { get; private set; }
 
+		Dictionary<string, CodeRecord> records = new Dictionary<string, CodeRecord>();
+
 		Dictionary<long,StepEventRequest> stepreqs = new Dictionary<long, StepEventRequest> ();
 
 		List<Regex> typeMatchers = new List<Regex> ();
 
-		public CoverHost (params string[] args)
+		List<AssemblyMirror> logAssemblies = new List<AssemblyMirror>();
+
+		public CoverHost ( params string[] args)
 		{
+
+
 			VirtualMachine = VirtualMachineManager.Launch (args);
 			VirtualMachine.EnableEvents (
-				EventType.ThreadStart,
-				EventType.ThreadDeath,
-				EventType.VMDeath
+				EventType.VMDeath,
+				EventType.TypeLoad
 			);
 		}
 
-		public void CheckMethodRequests( Event evt )
+		public bool CheckTypeLoad( Event evt )
 		{
-			CheckMethodEntryRequest( evt );
+			var tl = evt as TypeLoadEvent;
+			if ( tl != null ){
+				//Console.Error.WriteLine("tlr = "+ tl.Type.FullName);
+				foreach ( var rx in typeMatchers ){
+					if ( rx.IsMatch( tl.Type.FullName ) ){
+						if ( !logAssemblies.Contains( tl.Type.Assembly ) ) {
+							logAssemblies.Add( tl.Type.Assembly );
+							UpdateStepFilter();
+						}
+					}
+				}
+			}
+			return tl != null;
 		}
 
-		public void CheckMethodEntryRequest( Event evt )
+		void UpdateStepFilter( ) {
+			foreach ( var step in stepreqs.Values ){
+				step.Enabled = false;
+				step.AssemblyFilter = new List<AssemblyMirror>( logAssemblies );
+				step.Enabled = step.AssemblyFilter.Count > 0 || (typeMatchers.Count < 1);
+			}
+		}
+
+		public bool CheckMethodRequests( Event evt )
+		{
+			return CheckMethodEntryRequest( evt );
+		}
+
+		void SetupThreadStep( MethodEntryEvent meth )
+		{
+			if ( !stepreqs.ContainsKey( meth.Thread.Id ) ){
+				var s = VirtualMachine.CreateStepRequest (meth.Thread);
+				s.Filter = StepFilter.DebuggerHidden;
+				s.Size = StepSize.Line;
+				s.Depth = StepDepth.Into;
+				stepreqs [meth.Thread.Id] = s;
+				UpdateStepFilter();
+			}
+		}
+
+		public bool CheckMethodEntryRequest( Event evt )
 		{
 			var met = evt as MethodEntryEvent;
 			if (met != null) {
-				//Console.WriteLine (met.Method.FullName);
-				//if (firstMethod) {
-				var t = evt.Thread;
-				if ( !stepreqs.ContainsKey( t.Id ) )
+				SetupThreadStep( met );
+				CodeRecord rec = null;
+				//Console.Error.WriteLine( met.Method.FullName );
+				if ( !records.TryGetValue( met.Method.FullName, out rec ) )
 				{
-					var s = VirtualMachine.CreateStepRequest (t);
-					
-					//var asms = VirtualMachine.RootDomain.GetAssemblies ();
-					//foreach (var a in asms) {
-						//Console.WriteLine ("asm {0}", a.GetName ());
-						//if (a.GetName ().Name == "testsubject") {
-						//	s.AssemblyFilter = new List<AssemblyMirror>{ a };
-						//}
-					//}
-
-					s.Filter = StepFilter.DebuggerHidden;
-					
-					s.Size = StepSize.Line;
-					s.Depth = StepDepth.Into;
-					s.Enabled = true;
-					stepreqs [met.Thread.Id] = s;
+					rec = new CodeRecord() { 
+						ClassName = met.Method.DeclaringType.CSharpName,
+						MethodName = met.Method.Name,
+						Lines = new List<int>( met.Method.LineNumbers ),
+						LineHits = new List<int>(),
+						SourceFile = met.Method.SourceFile,
+					};
+					records.Add( met.Method.FullName, rec );
+				} 
+				rec.CallCount++;
+				if ( rec.Lines.Count > 0 ) {
+					rec.LineHits = new List<int>() { rec.Lines[0] };
 				}
-				//}
-				//firstMethod = false;
 			}
+			return met != null;
 		}
 
-		public void CheckThreadRequests( Event evt )
-		{
-
-		}
-
-		public void CheckStepRequest( Event evt ) 
+		public bool CheckStepRequest( Event evt ) 
 		{
 			var step = evt as StepEvent;
 			if (step != null) {
-				var loc = step.Thread.GetFrames () [0].Location;
-				
-				Console.WriteLine ("{0}:{1} ", loc.SourceFile, loc.LineNumber);
-				Console.WriteLine (loc.Method.Name);
-				foreach ( var l in loc.Method.LineNumbers.Distinct() ){
-					Console.WriteLine(" {0}", l );
+
+				CodeRecord rec = null;
+				if ( records.TryGetValue( step.Method.FullName, out rec ) ){
+					var loc = step.Thread.GetFrames () [0].Location;
+					rec.LineHits.Add( loc.LineNumber );
+					Console.Error.WriteLine( loc );
 				}
 			}
+			return step != null;
 		}
 
 		public void Cover (params string[] typeMatchPatterns)
 		{
+			foreach ( var t in typeMatchPatterns ){
+				var r = new Regex( t );
+				typeMatchers.Add(r);
+			}
+
 			//bool firstMethod = true;
 			var b = VirtualMachine.CreateMethodEntryRequest ();
 			b.Enable ();
@@ -93,9 +131,9 @@ namespace XR.Mono.Cover
 				var evts = VirtualMachine.GetNextEventSet ();
 				foreach (var e in evts.Events) {
 
-					CheckMethodRequests(e);
-
-					CheckStepRequest(e);
+					if ( CheckMethodRequests(e) ) continue;
+					if ( CheckStepRequest(e) ) continue;
+					if ( CheckTypeLoad(e) ) continue;
 
 					if (e is VMDisconnectEvent)
 						return;
@@ -112,7 +150,6 @@ namespace XR.Mono.Cover
 					break;
 			} while ( true );
 		}
-
 
 		public void Resume ()
 		{

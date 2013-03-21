@@ -32,13 +32,15 @@
     <Reference Include="System" />
     <Reference Include="Mono.Debugger.Soft" />
     <Reference Include="System.Core" />
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CoverHost.cs" />
-    <Compile Include="VisitedCodeEvent.cs" />
     <Compile Include="CoverHostFactory.cs" />
-    <Compile Include="CallRecord.cs" />
+    <Compile Include="CodeRecord.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -13,7 +13,7 @@ namespace XR.Mono.Cover
 
 			var args = new List<string> {program};
 			args.AddRange (arguments);
-			var rv = new CoverHost (args.ToArray ());
+			var rv = new CoverHost ( args.ToArray ());
 			return rv;
 		}
 	}
