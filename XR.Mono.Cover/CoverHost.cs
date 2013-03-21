@@ -23,64 +23,84 @@ namespace XR.Mono.Cover
 				EventType.ThreadDeath,
 				EventType.VMDeath
 			);
+		}
 
+		public void CheckMethodRequests( Event evt )
+		{
+			CheckMethodEntryRequest( evt );
+		}
 
+		public void CheckMethodEntryRequest( Event evt )
+		{
+			var met = evt as MethodEntryEvent;
+			if (met != null) {
+				//Console.WriteLine (met.Method.FullName);
+				//if (firstMethod) {
+				var t = evt.Thread;
+				if ( !stepreqs.ContainsKey( t.Id ) )
+				{
+					var s = VirtualMachine.CreateStepRequest (t);
+					
+					//var asms = VirtualMachine.RootDomain.GetAssemblies ();
+					//foreach (var a in asms) {
+						//Console.WriteLine ("asm {0}", a.GetName ());
+						//if (a.GetName ().Name == "testsubject") {
+						//	s.AssemblyFilter = new List<AssemblyMirror>{ a };
+						//}
+					//}
+
+					s.Filter = StepFilter.DebuggerHidden;
+					
+					s.Size = StepSize.Line;
+					s.Depth = StepDepth.Into;
+					s.Enabled = true;
+					stepreqs [met.Thread.Id] = s;
+				}
+				//}
+				//firstMethod = false;
+			}
+		}
+
+		public void CheckThreadRequests( Event evt )
+		{
+
+		}
+
+		public void CheckStepRequest( Event evt ) 
+		{
+			var step = evt as StepEvent;
+			if (step != null) {
+				var loc = step.Thread.GetFrames () [0].Location;
+				
+				Console.WriteLine ("{0}:{1} ", loc.SourceFile, loc.LineNumber);
+				Console.WriteLine (loc.Method.Name);
+				foreach ( var l in loc.Method.LineNumbers.Distinct() ){
+					Console.WriteLine(" {0}", l );
+				}
+			}
 		}
 
 		public void Cover (params string[] typeMatchPatterns)
 		{
-			bool firstMethod = true;
+			//bool firstMethod = true;
 			var b = VirtualMachine.CreateMethodEntryRequest ();
 			b.Enable ();
 
-			StepEventRequest s;
+			//StepEventRequest s;
 
 			Resume ();
 			do {
 				var evts = VirtualMachine.GetNextEventSet ();
 				foreach (var e in evts.Events) {
 
-					var met = e as MethodEntryEvent;
+					CheckMethodRequests(e);
 
-					if (met != null) {
-						//Console.WriteLine (met.Method.FullName);
-						if (firstMethod) {
-							s = VirtualMachine.CreateStepRequest (met.Thread);
-
-							var asms = VirtualMachine.RootDomain.GetAssemblies ();
-							foreach (var a in asms) {
-								Console.WriteLine ("asm {0}", a.GetName ());
-								if (a.GetName ().Name == "testsubject") {
-									s.AssemblyFilter = new List<AssemblyMirror>{ a };
-								}
-							}
-
-
-
-							s.Filter = StepFilter.DebuggerHidden;
-
-							s.Size = StepSize.Line;
-							s.Depth = StepDepth.Into;
-							s.Enabled = true;
-							stepreqs [met.Thread.Id] = s;
-						}
-						firstMethod = false;
-					}
-
-					var step = e as StepEvent;
-					if (step != null) {
-						var loc = step.Thread.GetFrames () [0].Location;
-
-						Console.WriteLine ("{0}:{1} ", loc.SourceFile, loc.LineNumber);
-						Console.WriteLine (loc.Method.Name);
-						foreach ( var l in loc.Method.LineNumbers.Distinct() ){
-							Console.WriteLine(" {0}", l );
-						}
-					}
+					CheckStepRequest(e);
 
 					if (e is VMDisconnectEvent)
 						return;
 				}
+
 				if (evts.Events.Length > 0) {
 					try {
 						Resume ();

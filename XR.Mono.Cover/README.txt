@@ -2,7 +2,7 @@ XR.Mono.Cover (c) 2013 Ian Norton
 ----------------------------------
 
 XR.Mono.Cover is a simple code coverage tool specifically for mono. 
-It will record which lines of your source are actally executed and 
+It will record which lines of your source are actually executed and 
 log some basic statistics like call counts and the number of times 
 a line is actually run.
 

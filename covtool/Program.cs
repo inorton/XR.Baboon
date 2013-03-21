@@ -12,7 +12,7 @@ namespace covtool
 				"testsubject.exe");
 
 
-			ct.Setup ();
+			ct.Cover ();
 		}
 	}
 }

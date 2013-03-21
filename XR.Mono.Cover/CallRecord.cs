@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace XR.Mono.Cover
 {
 
-	public class MethodData {
+	public class CallRecord {
 		public List<int> Lines { get; set; }
 		public Dictionary<int,int> LineHits { get; set; }
 		public string SourceFile { get; set; }
@@ -19,6 +19,8 @@ namespace XR.Mono.Cover
 			}
 		}
 		public List<TimeSpan> CallTimes { get; set; }
+
+
 	}
 
 }
