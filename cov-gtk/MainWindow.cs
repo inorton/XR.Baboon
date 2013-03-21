@@ -1,6 +1,7 @@
 using System;
 using Gtk;
 using GtkSourceView;
+using covgtk;
 
 public partial class MainWindow: Gtk.Window
 {	
@@ -21,8 +22,8 @@ public partial class MainWindow: Gtk.Window
 		buf.HighlightSyntax = true;
 
 		var sv = new SourceView (buf);
-
-
+		sv.Editable = false;
+		sv.ShowLineNumbers = true;
 
 		var sw = new ScrolledWindow ();
 
@@ -42,18 +43,14 @@ public class Fooo {
 
 
 
-		var iter1 = buf.GetIterAtLineOffset (7, 0);
-		var iter2 = buf.GetIterAtLineOffset (8, 0);
+		var iter1 = buf.GetIterAtLineOffset (8, 0);
+		var iter2 = buf.GetIterAtLineOffset (9, 0);
 		buf.ApplyTag (tag, iter1, iter2);
-
-
-
-
-		// buf.AddMark (new TextMark ("foo", true), iter);
 
 		sw.Add (sv);
 
-		this.Add (sw);
+
+		CloserTabLabel.InsertTabPage (notebook1, sw, "foo.cs");
 
 		this.ShowAll ();
 
