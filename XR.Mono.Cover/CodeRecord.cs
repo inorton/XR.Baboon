@@ -6,7 +6,8 @@ using System.Linq;
 namespace XR.Mono.Cover
 {
 
-	public class CodeRecord {
+	public class CodeRecord
+	{
 		public List<int> Lines { get; set; }
 		public List<int> LineHits { get; set; }
 		public string SourceFile { get; set; }
@@ -15,16 +16,29 @@ namespace XR.Mono.Cover
 		public string FullMethodName { get; set; }
 		public int CallCount { get; set; }
 
+		public CodeRecord ()
+		{
+			Lines = new List<int> ();
+			LineHits = new List<int> ();
+		}
+
 		public double Coverage {
 			get {
-				var hits =  LineHits.Distinct();
-				return (hits.Count() * 1.0) / Lines.Distinct().Count();
+				var hits = LineHits.Distinct ();
+				return (hits.Count () * 1.0) / Lines.Distinct ().Count ();
 			}
 		}
 
-		public override string ToString() 
+		public void Hit (int line)
 		{
-			return String.Format("{0}:{1},Calls={2},Coverage={3:00.0}%,{4}", ClassName, Name, CallCount, 100 * Coverage, FullMethodName );
+			if (LineHits == null)
+				LineHits = new List<int> ();
+			LineHits.Add (line);
+		}
+
+		public override string ToString ()
+		{
+			return String.Format ("{0}:{1},Calls={2},Coverage={3:00.0}%,{4}", ClassName, Name, CallCount, 100 * Coverage, FullMethodName);
 		}
 
 

@@ -4,7 +4,7 @@ namespace testsubject
 {
     class MainClass
     {
-        public static void Main (string[] args) 
+        public static void Main (string[] args)
         {          
             for (int i = 0; i < 12; i++)
                 GetCount ();
@@ -18,16 +18,19 @@ namespace testsubject
 
         public static void Foo ()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException ();
         }
 
         static int count = 0;
         public static int GetCount ()
         {
-            Console.WriteLine(count);
+            Console.WriteLine (count);
 
-            if ( count > 100 ) 
+            if (count > 100) 
                 Foo ();
+
+            if (count > 8) 
+                throw new InvalidOperationException ("bang");
 
             return ++count;
         }

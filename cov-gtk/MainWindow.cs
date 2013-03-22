@@ -12,19 +12,25 @@ public partial class MainWindow: Gtk.Window
 
 	SourceLanguageManager sourceManager = new SourceLanguageManager ();
 
-	TextTag visitedTag = new TextTag ("visited_green") { Background = "#ccffcc" };
+	public const string VisitedOnceBG = "#aaffaa";
+	public const string VisitedMoreBG = "#88cc88";
+
 
 	public void RenderCoverage (string filename, SourceBuffer buf)
 	{
 		buf.Text = File.ReadAllText (filename);
+		buf.ApplyTag ("visited_once", buf.GetIterAtLine (10), buf.GetIterAtLine (14));
+		buf.ApplyTag ("visited_more", buf.GetIterAtLine (14), buf.GetIterAtLine (15));
 	}
 
 	public void OpenSourceFile (string filename)
 	{
 		SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
 		var buf = new SourceBuffer (language);
-
-		buf.TagTable.Add (visitedTag);
+		TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
+		TextTag visitedMore = new TextTag ("visited_more") { Background = VisitedMoreBG };
+		buf.TagTable.Add (visitedOnce);
+		buf.TagTable.Add (visitedMore);
 		buf.HighlightSyntax = true;
 
 		var sv = new SourceView (buf);

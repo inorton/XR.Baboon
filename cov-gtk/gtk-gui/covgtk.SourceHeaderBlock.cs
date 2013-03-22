@@ -24,7 +24,8 @@ namespace covgtk
 			this.heading.Name = "heading";
 			this.heading.Xpad = 3;
 			this.heading.Xalign = 0F;
-			this.heading.LabelProp = global::Mono.Unix.Catalog.GetString ("heading");
+			this.heading.LabelProp = global::Mono.Unix.Catalog.GetString ("<span size=\"large\">File.cs</span>");
+			this.heading.UseMarkup = true;
 			this.heading.Wrap = true;
 			this.heading.Ellipsize = ((global::Pango.EllipsizeMode)(3));
 			this.vbox1.Add (this.heading);
@@ -49,6 +50,8 @@ namespace covgtk
 			// Container child vbox1.Gtk.Box+BoxChild
 			this.percentage = new global::Gtk.ProgressBar ();
 			this.percentage.Name = "percentage";
+			this.percentage.Text = global::Mono.Unix.Catalog.GetString ("31%");
+			this.percentage.Fraction = 0.31;
 			this.vbox1.Add (this.percentage);
 			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.percentage]));
 			w3.Position = 2;

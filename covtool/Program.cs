@@ -1,20 +1,34 @@
 using System;
+using System.Linq;
 using XR.Mono.Cover;
+using System.Collections.Generic;
 
 namespace covtool
 {
 	class MainClass
 	{
-		public static void Main (string[] args)
+		public static void Main (string[] vargs)
 		{
-			var ct = CoverHostFactory.CreateHost (
-				//"/opt/mono/lib/mono/2.0/nunit-console.exe", 
-				"testsubject.exe");
+			var patterns = new List<string> ();
+			var args = new List<string> ();
 
+			bool donePatterns = false;
+			foreach (var x in vargs) {
+				if (!donePatterns) {
+					if (x != "--") {
+						patterns.Add (x);
+					} else {
+						donePatterns = true;
+					}
+				} else {
+					args.Add (x);
+				}
 
-			ct.Cover ( "^testsubject" );
+			}
 
-			ct.Report();
+			var ct = CoverHostFactory.CreateHost (args.First (), args.Skip (1).ToArray ());
+			ct.Cover (patterns.ToArray ());
+			ct.Report ();
 		}
 	}
 }
