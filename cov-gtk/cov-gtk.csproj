@@ -62,6 +62,8 @@
     <Compile Include="gtk-gui\covgtk.CloserTabLabel.cs" />
     <Compile Include="SourceHeaderBlock.cs" />
     <Compile Include="gtk-gui\covgtk.SourceHeaderBlock.cs" />
+    <Compile Include="SourcePage.cs" />
+    <Compile Include="gtk-gui\covgtk.SourcePage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

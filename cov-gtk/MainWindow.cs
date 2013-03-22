@@ -33,17 +33,22 @@ public partial class MainWindow: Gtk.Window
 		buf.TagTable.Add (visitedMore);
 		buf.HighlightSyntax = true;
 
+		var page = new SourcePage ();
+
 		var sv = new SourceView (buf);
 		sv.Editable = false;
 		sv.ShowLineNumbers = true;
-		
-		var sw = new ScrolledWindow ();
-		
-		sw.Add (sv);
+
+		var fp = System.IO.Path.GetFullPath (filename);
+
+		page.Window.Add (sv);
+		page.SetHeadingText (fp);
+		page.SetSubHeadingText ("bllaaaa");
+		page.SetCoverage (0.33);
 
 		var fname = System.IO.Path.GetFileName (filename);
 
-		CloserTabLabel.InsertTabPage (notebook1, sw, fname);
+		CloserTabLabel.InsertTabPage (notebook1, page, fname);
 
 		RenderCoverage (filename, buf);
 	}
