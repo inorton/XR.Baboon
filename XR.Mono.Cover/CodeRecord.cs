@@ -22,16 +22,17 @@ namespace XR.Mono.Cover
 			LineHits = new List<int> ();
 		}
 
-		public double Coverage {
+		public virtual double Coverage {
 			get {
 				var hits = LineHits.Distinct ();
 				return (hits.Count () * 1.0) / Lines.Distinct ().Count ();
 			}
+			set {}
 		}
 
-		public void Hit (int line)
+		public virtual void Hit (int line)
 		{
-			if (LineHits == null)
+ if (LineHits == null)
 				LineHits = new List<int> ();
 			LineHits.Add (line);
 		}

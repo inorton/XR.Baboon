@@ -3,7 +3,7 @@ using System.Linq;
 using XR.Mono.Cover;
 using System.Collections.Generic;
 
-namespace covtool
+namespace Covtool
 {
 	class MainClass
 	{

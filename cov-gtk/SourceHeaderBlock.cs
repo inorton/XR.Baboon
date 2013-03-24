@@ -1,6 +1,6 @@
 using System;
 
-namespace covgtk
+namespace XR.Baboon
 {
 	[System.ComponentModel.ToolboxItem(true)]
 	public partial class SourceHeaderBlock : Gtk.Bin

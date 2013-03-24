@@ -4,69 +4,112 @@ using Gtk;
 using GtkSourceView;
 using covgtk;
 using System.Collections.Generic;
+using XR.Mono.Cover;
 
-public partial class MainWindow: Gtk.Window
-{	
+namespace XR.Baboon
+{
+	public partial class MainWindow: Gtk.Window
+	{	
 
-	Dictionary<string,SourceView> sourceFiles = new Dictionary<string, SourceView> ();
+		Dictionary<string,SourceView> sourceFiles = new Dictionary<string, SourceView> ();
 
-	SourceLanguageManager sourceManager = new SourceLanguageManager ();
+		SourceLanguageManager sourceManager = new SourceLanguageManager ();
+		TreeItemManager treeManager = new TreeItemManager ();
 
-	public const string VisitedOnceBG = "#aaffaa";
-	public const string VisitedMoreBG = "#88cc88";
+		public const string VisitedOnceBG = "#aaffaa";
+		public const string VisitedMoreBG = "#88cc88";
 
 
-	public void RenderCoverage (string filename, SourceBuffer buf)
-	{
-		buf.Text = File.ReadAllText (filename);
-		buf.ApplyTag ("visited_once", buf.GetIterAtLine (10), buf.GetIterAtLine (14));
-		buf.ApplyTag ("visited_more", buf.GetIterAtLine (14), buf.GetIterAtLine (15));
-	}
+		public void RenderCoverage (string filename, SourceBuffer buf)
+		{
+			buf.Text = File.ReadAllText (filename);
+			buf.ApplyTag ("visited_once", buf.GetIterAtLine (10), buf.GetIterAtLine (14));
+			buf.ApplyTag ("visited_more", buf.GetIterAtLine (14), buf.GetIterAtLine (15));
 
-	public void OpenSourceFile (string filename)
-	{
-		SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
-		var buf = new SourceBuffer (language);
-		TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
-		TextTag visitedMore = new TextTag ("visited_more") { Background = VisitedMoreBG };
-		buf.TagTable.Add (visitedOnce);
-		buf.TagTable.Add (visitedMore);
-		buf.HighlightSyntax = true;
+		}
 
-		var page = new SourcePage ();
+		public void OpenSourceFile (string filename)
+		{
+			SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
+			var buf = new SourceBuffer (language);
+			TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
+			TextTag visitedMore = new TextTag ("visited_more") { Background = VisitedMoreBG };
+			buf.TagTable.Add (visitedOnce);
+			buf.TagTable.Add (visitedMore);
+			buf.HighlightSyntax = true;
 
-		var sv = new SourceView (buf);
-		sv.Editable = false;
-		sv.ShowLineNumbers = true;
+			var page = new SourcePage ();
 
-		var fp = System.IO.Path.GetFullPath (filename);
+			var sv = new SourceView (buf);
+			// sv.ScrollToIter (buf.GetIterAtLineOffset (22, 0), 1.1, false, 0.0, 0.0);
 
-		page.Window.Add (sv);
-		page.SetHeadingText (fp);
-		page.SetSubHeadingText ("bllaaaa");
-		page.SetCoverage (0.33);
+			sv.Editable = false;
+			sv.ShowLineNumbers = true;
 
-		var fname = System.IO.Path.GetFileName (filename);
+			var fp = System.IO.Path.GetFullPath (filename);
 
-		CloserTabLabel.InsertTabPage (notebook1, page, fname);
+			page.Window.Add (sv);
+			page.SetHeadingText (fp);
+			page.SetSubHeadingText ("bllaaaa");
 
-		RenderCoverage (filename, buf);
-	}
+			page.SetCoverage (0.33);
 
-	public MainWindow (): base (Gtk.WindowType.Toplevel)
-	{
-		Build ();
+			var fname = System.IO.Path.GetFileName (filename);
 
-		OpenSourceFile ("../../MainWindow.cs");
-		OpenSourceFile ("../../Program.cs");
+			CloserTabLabel.InsertTabPage (notebook1, page, fname);
 
-		this.ShowAll ();
+			RenderCoverage (filename, buf);
+		}
 
-	}
+		public MainWindow (): base (Gtk.WindowType.Toplevel)
+		{
+			Build ();
+
+		
+			itemtree.Model = treeManager.TStore;
+			var namerender = new CellRendererText ();
+			var covrender = new CellRendererText ();
+
+			var namecol = new TreeViewColumn ();
+			namecol.Title = "Name";
+			namecol.PackStart (namerender, true);
+			namecol.AddAttribute (namerender, "text", 0);
+			namecol.SetCellDataFunc (namerender, CodeRecordCellRenderFuncs.RenderName);
+
+			itemtree.AppendColumn (namecol);
+
+			var covcol = new TreeViewColumn ();
+			covcol.Title = "%";
+			covcol.PackStart (covrender, true);
+			covcol.AddAttribute (covrender, "text", 1);
+			covcol.SetCellDataFunc (covrender, CodeRecordCellRenderFuncs.RenderCoverage);
+
+			itemtree.AppendColumn (covcol);
+			Load (null);
+
+			this.ShowAll ();
+
+
+		}
+
+		public void Load (List<CodeRecord> code)
+		{
+			var x = new CodeRecord () { Name = "Test", ClassName = "Foo.Bar.Baz" };
+			x.Lines.Add (1);
+			x.Lines.Add (2);
+			x.LineHits.Add (2);
+			var list = new List<CodeRecord> { x };
+			treeManager.AddMethods ("Foo.Bar.Baz", list);
+
+			OpenSourceFile ("../../MainWindow.cs");
+			OpenSourceFile ("../../Program.cs");
+
+		}
 	
-	protected void OnDeleteEvent (object sender, DeleteEventArgs a)
-	{
-		Application.Quit ();
-		a.RetVal = true;
+		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
+		{
+			Application.Quit ();
+			a.RetVal = true;
+		}
 	}
 }

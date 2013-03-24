@@ -1,7 +1,7 @@
 using System;
 using Gtk;
 
-namespace covgtk
+namespace XR.Baboon
 {
 	[System.ComponentModel.ToolboxItem(true)]
 	public partial class SourcePage : Gtk.Bin

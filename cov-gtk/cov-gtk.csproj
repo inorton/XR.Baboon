@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{E8CA92A1-ABA9-4899-A20B-C142ED4C1A07}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>covgtk</RootNamespace>
+    <RootNamespace>XR.Baboon</RootNamespace>
     <AssemblyName>cov-gtk</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
@@ -46,6 +46,7 @@
     <Reference Include="gtksourceview2-sharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f">
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="gtk-gui\gui.stetic">
@@ -55,15 +56,23 @@
   <ItemGroup>
     <Compile Include="gtk-gui\generated.cs" />
     <Compile Include="MainWindow.cs" />
-    <Compile Include="gtk-gui\MainWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CloserTabLabel.cs" />
     <Compile Include="gtk-gui\covgtk.CloserTabLabel.cs" />
     <Compile Include="SourceHeaderBlock.cs" />
-    <Compile Include="gtk-gui\covgtk.SourceHeaderBlock.cs" />
     <Compile Include="SourcePage.cs" />
-    <Compile Include="gtk-gui\covgtk.SourcePage.cs" />
+    <Compile Include="TreeItemManager.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.MainWindow.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.SourceHeaderBlock.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.SourcePage.cs" />
+    <Compile Include="CodeRecordCellRenderFuncs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\XR.Mono.Cover\XR.Mono.Cover.csproj">
+      <Project>{E5807044-7B26-40F1-8567-43927DC7090A}</Project>
+      <Name>XR.Mono.Cover</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

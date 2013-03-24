@@ -1,7 +1,7 @@
 using System;
 using Gtk;
 
-namespace covgtk
+namespace XR.Baboon
 {
 	class MainClass
 	{
