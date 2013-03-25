@@ -28,7 +28,7 @@ namespace XR.Mono.Cover
 
             using (var cmd = new SqliteCommand( con )) {
                 cmd.CommandText = @"CREATE TABLE IF NOT EXISTS methods ( 
-                    TEXT fullname PRIMARY KEY, TEXT sourcefile, TEXT classname, TEXT name, TEXT assembly )";
+                    TEXT fullname, TEXT sourcefile, TEXT classname, TEXT name, TEXT assembly )";
                 cmd.ExecuteNonQuery ();
             }
 
