@@ -5,6 +5,7 @@ using GtkSourceView;
 using covgtk;
 using System.Collections.Generic;
 using XR.Mono.Cover;
+using System.Linq;
 
 namespace XR.Baboon
 {
@@ -92,15 +93,22 @@ namespace XR.Baboon
 
 		public void Load (List<CodeRecord> code)
 		{
-			
 
+            var recs = new Dictionary<string, List<CodeRecord>>();
+            foreach ( var rec in code ) {
+                if ( !recs.ContainsKey( rec.ClassName ) )
+                    recs[rec.ClassName] = new List<CodeRecord>();
 
-			var x = new CodeRecord () { Name = "Test", ClassName = "Foo.Bar.Baz" };
-			x.Lines.Add (1);
-			x.Lines.Add (2);
-			x.LineHits.Add (2);
-			var list = new List<CodeRecord> { x };
-			treeManager.AddMethods ("Foo.Bar.Baz", list);
+                recs[rec.ClassName].Add( rec );
+            }
+
+            var types = recs.Keys.ToArray();
+            Array.Sort( types );
+
+            foreach ( var t in types ) {
+                treeManager.AddMethods (t, recs[t]);
+            }
+
 			itemtree.ExpandAll ();
 
 			//OpenSourceFile ("../../MainWindow.cs");

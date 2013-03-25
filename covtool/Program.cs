@@ -13,9 +13,12 @@ namespace Covtool
 			var args = new List<string> ();
 
 			bool donePatterns = false;
-			foreach (var x in vargs) {
-				if (!donePatterns) {
-					if (x != "--") {
+			foreach (var x in vargs.Skip(1)) 
+            {
+				if (!donePatterns) 
+                {
+					if (x != "--") 
+                    {
 						patterns.Add (x);
 					} else {
 						donePatterns = true;
@@ -26,9 +29,9 @@ namespace Covtool
 
 			}
 
-			var ct = CoverHostFactory.CreateHost (args.First (), args.Skip (1).ToArray ());
+			var ct = CoverHostFactory.CreateHost (vargs[0], args[0], args.Skip (2).ToArray ());
 			ct.Cover (patterns.ToArray ());
-			ct.Report ();
+			//ct.Report ();
 		}
 	}
 }

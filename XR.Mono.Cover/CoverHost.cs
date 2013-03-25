@@ -19,10 +19,10 @@ namespace XR.Mono.Cover
 
         List<AssemblyMirror> logAssemblies = new List<AssemblyMirror> ();
 
+        public CodeRecordData DataStore { get; set; }
+
         public CoverHost (params string[] args)
         {
-
-
             VirtualMachine = VirtualMachineManager.Launch (args);
             VirtualMachine.EnableEvents (
 				EventType.VMDeath,
@@ -54,6 +54,7 @@ namespace XR.Mono.Cover
 										SourceFile = m.SourceFile,
 									};
                                     records.Add (m.FullName, rec);
+                                    DataStore.RegisterMethod( rec );
                                 } 
                             }
                         }
@@ -129,31 +130,42 @@ namespace XR.Mono.Cover
             //StepEventRequest s;
 
             Resume ();
-            do {
-                var evts = VirtualMachine.GetNextEventSet ();
-                foreach (var e in evts.Events) {
+            try {
+                do {
+                    var evts = VirtualMachine.GetNextEventSet ();
+                    foreach (var e in evts.Events) {
 
-                    if (CheckMethodRequests (e))
-                        continue;
-                    if (CheckStepRequest (e))
-                        continue;
-                    if (CheckTypeLoad (e))
-                        continue;
+                        if (CheckMethodRequests (e))
+                            continue;
+                        if (CheckStepRequest (e))
+                            continue;
+                        if (CheckTypeLoad (e))
+                            continue;
 
-                    if (e is VMDisconnectEvent)
-                        return;
-                }
-
-                if (evts.Events.Length > 0) {
-                    try {
-                        Resume ();
-                    } catch (InvalidOperationException) {
-
+                        if (e is VMDisconnectEvent)
+                            return;
                     }
+
+                    if (evts.Events.Length > 0) {
+                        try {
+                            Resume ();
+                        } catch (InvalidOperationException) {
+
+                        }
+                    }
+                    if (VirtualMachine.TargetProcess.HasExited)
+                        break;
+                } while ( true );
+            } finally {
+
+                // record stats
+                foreach ( var rec in records.Values ) {
+                    DataStore.RegisterCalls( rec );
+                    DataStore.RegisterHits( rec );
                 }
-                if (VirtualMachine.TargetProcess.HasExited)
-                    break;
-            } while ( true );
+
+                DataStore.Close();
+            }
         }
 
         public void Resume ()
