@@ -50,7 +50,7 @@
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Bin" id="covgtk.CloserTabLabel" design-size="102 30">
+  <widget class="Gtk.Bin" id="XR.Baboon.CloserTabLabel" design-size="102 30">
     <property name="MemberName" />
     <property name="Visible">False</property>
     <child>
@@ -156,7 +156,7 @@
         <property name="MemberName" />
         <property name="Spacing">6</property>
         <child>
-          <widget class="covgtk.SourceHeaderBlock" id="header">
+          <widget class="XR.Baboon.SourceHeaderBlock" id="header">
             <property name="MemberName" />
             <property name="Events">ButtonPressMask</property>
           </widget>
