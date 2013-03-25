@@ -28,8 +28,9 @@ namespace XR.Baboon
 
 		}
 
-		public void OpenSourceFile (string filename)
+		public void OpenSourceFile (CodeRecord rec)
 		{
+			var filename = rec.SourceFile;
 			SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
 			var buf = new SourceBuffer (language);
 			TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
@@ -65,44 +66,45 @@ namespace XR.Baboon
 		{
 			Build ();
 
-		
+
 			itemtree.Model = treeManager.TStore;
 			var namerender = new CellRendererText ();
 			var covrender = new CellRendererText ();
-
+			
 			var namecol = new TreeViewColumn ();
 			namecol.Title = "Name";
 			namecol.PackStart (namerender, true);
 			namecol.AddAttribute (namerender, "text", 0);
 			namecol.SetCellDataFunc (namerender, CodeRecordCellRenderFuncs.RenderName);
-
+			
 			itemtree.AppendColumn (namecol);
-
+			
 			var covcol = new TreeViewColumn ();
 			covcol.Title = "%";
 			covcol.PackStart (covrender, true);
 			covcol.AddAttribute (covrender, "text", 1);
 			covcol.SetCellDataFunc (covrender, CodeRecordCellRenderFuncs.RenderCoverage);
-
+			
 			itemtree.AppendColumn (covcol);
-			Load (null);
 
 			this.ShowAll ();
-
-
 		}
 
 		public void Load (List<CodeRecord> code)
 		{
+			
+
+
 			var x = new CodeRecord () { Name = "Test", ClassName = "Foo.Bar.Baz" };
 			x.Lines.Add (1);
 			x.Lines.Add (2);
 			x.LineHits.Add (2);
 			var list = new List<CodeRecord> { x };
 			treeManager.AddMethods ("Foo.Bar.Baz", list);
+			itemtree.ExpandAll ();
 
-			OpenSourceFile ("../../MainWindow.cs");
-			OpenSourceFile ("../../Program.cs");
+			//OpenSourceFile ("../../MainWindow.cs");
+			//OpenSourceFile ("../../Program.cs");
 
 		}
 	

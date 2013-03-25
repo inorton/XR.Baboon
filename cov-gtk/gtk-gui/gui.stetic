@@ -10,7 +10,7 @@
     <widget-library name="../bin/Debug/cov-gtk.exe" internal="true" />
     <widget-library name="gtksourceview2-sharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
   </import>
-  <widget class="Gtk.Window" id="XR.Baboon.MainWindow" design-size="400 300">
+  <widget class="Gtk.Window" id="XR.Baboon.MainWindow" design-size="700 423">
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
     <property name="WindowPosition">CenterOnParent</property>
@@ -21,7 +21,7 @@
       <widget class="Gtk.HPaned" id="hpaned1">
         <property name="MemberName" />
         <property name="CanFocus">True</property>
-        <property name="Position">152</property>
+        <property name="Position">240</property>
         <child>
           <widget class="Gtk.ScrolledWindow" id="GtkScrolledWindow">
             <property name="MemberName" />
