@@ -1,7 +1,7 @@
 using System;
 using Gtk;
 
-namespace covgtk
+namespace XR.Baboon
 {
 	[System.ComponentModel.ToolboxItem(true)]
 	public partial class CloserTabLabel : Gtk.Bin
@@ -32,6 +32,7 @@ namespace covgtk
 			tab.Closer.Pressed += (sender, e) => {
 				book.Remove (page); };
 			book.InsertPage (page, tab, 0);
+            tab.ShowAll();
 		}
 	}
 }

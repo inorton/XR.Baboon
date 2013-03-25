@@ -16,7 +16,7 @@ namespace XR.Baboon
 			var txt = cell as CellRendererText;
 			CodeRecord rc = (CodeRecord)model.GetValue (iter, 0);
 			if (txt != null) {
-				txt.Text = rc.Name;
+				txt.Text = String.Format("{0}", rc.Name);
 				txt.Foreground = CellColor (rc.Coverage);
 
 			}

@@ -60,7 +60,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CloserTabLabel.cs" />
-    <Compile Include="gtk-gui\covgtk.CloserTabLabel.cs" />
     <Compile Include="SourceHeaderBlock.cs" />
     <Compile Include="SourcePage.cs" />
     <Compile Include="TreeItemManager.cs" />
@@ -68,6 +67,7 @@
     <Compile Include="gtk-gui\XR.Baboon.SourceHeaderBlock.cs" />
     <Compile Include="gtk-gui\XR.Baboon.SourcePage.cs" />
     <Compile Include="CodeRecordCellRenderFuncs.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.CloserTabLabel.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -31,6 +31,8 @@ namespace XR.Baboon
 			this.itemtree = new global::Gtk.TreeView ();
 			this.itemtree.CanFocus = true;
 			this.itemtree.Name = "itemtree";
+			this.itemtree.EnableSearch = false;
+			this.itemtree.HeadersVisible = false;
 			this.GtkScrolledWindow.Add (this.itemtree);
 			this.hpaned1.Add (this.GtkScrolledWindow);
 			global::Gtk.Paned.PanedChild w2 = ((global::Gtk.Paned.PanedChild)(this.hpaned1 [this.GtkScrolledWindow]));
@@ -49,6 +51,7 @@ namespace XR.Baboon
 			}
 			this.Show ();
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
+			this.itemtree.RowActivated += new global::Gtk.RowActivatedHandler (this.OnItemtreeRowActivated);
 		}
 	}
 }

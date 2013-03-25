@@ -31,6 +31,9 @@
                 <property name="MemberName" />
                 <property name="CanFocus">True</property>
                 <property name="ShowScrollbars">True</property>
+                <property name="EnableSearch">False</property>
+                <property name="HeadersVisible">False</property>
+                <signal name="RowActivated" handler="OnItemtreeRowActivated" />
               </widget>
             </child>
           </widget>

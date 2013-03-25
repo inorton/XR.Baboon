@@ -18,15 +18,29 @@ namespace XR.Baboon
 			var covered_lines = 0;
 
 			var iter = TStore.AppendValues (ns);
-
+            records.Sort( (a,b) => {
+                return a.Name.CompareTo( b.Name );
+            } );
 			foreach (var r in records) {
 				total_lines += r.Lines.Distinct ().Count ();
 				covered_lines += r.LineHits.Distinct ().Count ();
 				TStore.AppendValues (iter, r);
 			}
 			ns.Coverage = 1.0 * covered_lines / total_lines;
-
 		}
+        
+        public CodeRecord GetItem( TreePath path, int col )
+        {
+            TreeIter iter;
+            TStore.GetIter( out iter, path );
+            return GetItem( iter ); 
+        }
+        
+
+        public CodeRecord GetItem( TreeIter iter )
+        {
+            return TStore.GetValue( iter, 0 ) as CodeRecord;
+        }
 
 	}
 }

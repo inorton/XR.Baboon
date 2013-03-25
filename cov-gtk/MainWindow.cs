@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using Gtk;
 using GtkSourceView;
-using covgtk;
 using System.Collections.Generic;
 using XR.Mono.Cover;
 using System.Linq;
@@ -21,12 +20,15 @@ namespace XR.Baboon
 		public const string VisitedMoreBG = "#88cc88";
 
 
-		public void RenderCoverage (string filename, SourceBuffer buf)
+		public void RenderCoverage (string filename, SourceBuffer buf, CodeRecord rec)
 		{
 			buf.Text = File.ReadAllText (filename);
-			buf.ApplyTag ("visited_once", buf.GetIterAtLine (10), buf.GetIterAtLine (14));
-			buf.ApplyTag ("visited_more", buf.GetIterAtLine (14), buf.GetIterAtLine (15));
 
+            foreach ( var hit in rec.LineHits ){
+                var hittag = rec.GetHits(hit) == 1 ? "visited_once"  : "visited_more";
+                buf.ApplyTag (hittag, buf.GetIterAtLine (hit), buf.GetIterAtLine (hit+1));
+                
+            }
 		}
 
 		public void OpenSourceFile (CodeRecord rec)
@@ -39,6 +41,7 @@ namespace XR.Baboon
 			buf.TagTable.Add (visitedOnce);
 			buf.TagTable.Add (visitedMore);
 			buf.HighlightSyntax = true;
+            buf.Text = System.IO.File.ReadAllText( filename );
 
 			var page = new SourcePage ();
 
@@ -52,15 +55,19 @@ namespace XR.Baboon
 
 			page.Window.Add (sv);
 			page.SetHeadingText (fp);
-			page.SetSubHeadingText ("bllaaaa");
+			page.SetSubHeadingText ("");
 
-			page.SetCoverage (0.33);
+			page.SetCoverage (rec.Coverage);
 
 			var fname = System.IO.Path.GetFileName (filename);
 
 			CloserTabLabel.InsertTabPage (notebook1, page, fname);
 
-			RenderCoverage (filename, buf);
+            page.ShowAll();
+
+			RenderCoverage (filename, buf, rec);
+            
+            notebook1.Page = notebook1.NPages - 1;
 		}
 
 		public MainWindow (): base (Gtk.WindowType.Toplevel)
@@ -78,7 +85,6 @@ namespace XR.Baboon
 			namecol.AddAttribute (namerender, "text", 0);
 			namecol.SetCellDataFunc (namerender, CodeRecordCellRenderFuncs.RenderName);
 			
-			itemtree.AppendColumn (namecol);
 			
 			var covcol = new TreeViewColumn ();
 			covcol.Title = "%";
@@ -87,7 +93,8 @@ namespace XR.Baboon
 			covcol.SetCellDataFunc (covrender, CodeRecordCellRenderFuncs.RenderCoverage);
 			
 			itemtree.AppendColumn (covcol);
-
+            itemtree.AppendColumn (namecol);
+            
 			this.ShowAll ();
 		}
 
@@ -96,6 +103,7 @@ namespace XR.Baboon
 
             var recs = new Dictionary<string, List<CodeRecord>>();
             foreach ( var rec in code ) {
+                if ( rec.Lines.Count == 0 ) continue;
                 if ( !recs.ContainsKey( rec.ClassName ) )
                     recs[rec.ClassName] = new List<CodeRecord>();
 
@@ -111,9 +119,6 @@ namespace XR.Baboon
 
 			itemtree.ExpandAll ();
 
-			//OpenSourceFile ("../../MainWindow.cs");
-			//OpenSourceFile ("../../Program.cs");
-
 		}
 	
 		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
@@ -121,5 +126,15 @@ namespace XR.Baboon
 			Application.Quit ();
 			a.RetVal = true;
 		}
+
+        protected void OnItemtreeRowActivated (object o, RowActivatedArgs args)
+        {
+            var rec = treeManager.GetItem( args.Path, 0 );
+            if ( rec != null ){
+                if ( rec.SourceFile != null ){
+                    OpenSourceFile( rec );
+                }
+            }
+        }
 	}
 }
