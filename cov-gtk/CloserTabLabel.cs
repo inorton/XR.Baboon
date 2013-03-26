@@ -26,13 +26,18 @@ namespace XR.Baboon
 			}
 		}
 
-		public static void InsertTabPage (Notebook book, Widget page, string label)
+        public string CloseKeyData { get; set; }
+
+        public static CloserTabLabel InsertTabPage (Notebook book, Widget page, string label)
 		{
 			var tab = new CloserTabLabel () { Text = label };
 			tab.Closer.Pressed += (sender, e) => {
+                MainWindow.OnCloseSourceFile( tab.CloseKeyData );
 				book.Remove (page); };
 			book.InsertPage (page, tab, 0);
             tab.ShowAll();
+
+            return tab;
 		}
 	}
 }

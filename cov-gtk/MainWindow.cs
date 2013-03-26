@@ -11,8 +11,6 @@ namespace XR.Baboon
 	public partial class MainWindow: Gtk.Window
 	{	
 
-		Dictionary<string,SourceView> sourceFiles = new Dictionary<string, SourceView> ();
-
 		SourceLanguageManager sourceManager = new SourceLanguageManager ();
 		TreeItemManager treeManager = new TreeItemManager ();
 
@@ -20,20 +18,31 @@ namespace XR.Baboon
 		public const string VisitedMoreBG = "#88cc88";
 
 
-		public void RenderCoverage (string filename, SourceBuffer buf, CodeRecord rec)
+		public void RenderCoverage (SourceBuffer buf, CodeRecord rec)
 		{
-			buf.Text = File.ReadAllText (filename);
-
             foreach ( var hit in rec.LineHits ){
                 var hittag = rec.GetHits(hit) == 1 ? "visited_once"  : "visited_more";
-                buf.ApplyTag (hittag, buf.GetIterAtLine (hit), buf.GetIterAtLine (hit+1));
-                
+                buf.ApplyTag (hittag, buf.GetIterAtLine (hit-1), buf.GetIterAtLine (hit));
             }
 		}
 
-		public void OpenSourceFile (CodeRecord rec)
+        static HashSet<string> openFiles = new HashSet<string>();
+
+        public static void OnCloseSourceFile(string file)
+        {
+            if ( openFiles.Contains( file ) )
+                openFiles.Remove( file );
+        }
+
+		public void OpenSourceFile (List<CodeRecord> recs)
 		{
-			var filename = rec.SourceFile;
+            if ( recs.Count == 0 ) return;
+
+			var filename = recs[0].SourceFile;
+
+            if ( openFiles.Contains(filename) ) return;
+            openFiles.Add(filename);
+
 			SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
 			var buf = new SourceBuffer (language);
 			TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
@@ -57,16 +66,28 @@ namespace XR.Baboon
 			page.SetHeadingText (fp);
 			page.SetSubHeadingText ("");
 
-			page.SetCoverage (rec.Coverage);
+
 
 			var fname = System.IO.Path.GetFileName (filename);
 
-			CloserTabLabel.InsertTabPage (notebook1, page, fname);
+			var tab = CloserTabLabel.InsertTabPage (notebook1, page, fname);
+                tab.CloseKeyData = filename;
 
             page.ShowAll();
 
-			RenderCoverage (filename, buf, rec);
-            
+            int total_lines = 0;
+            int covered_lines = 0;
+            buf.Text = File.ReadAllText (filename);
+            foreach ( var rec in recs ){
+                RenderCoverage (buf, rec);
+                total_lines += rec.Lines.Count;
+                covered_lines += rec.LineHits.Distinct().Count();
+            }
+
+            double cov = (1.0 * covered_lines)/total_lines;
+
+            page.SetCoverage (cov);
+
             notebook1.Page = notebook1.NPages - 1;
 		}
 
@@ -98,9 +119,11 @@ namespace XR.Baboon
 			this.ShowAll ();
 		}
 
+        List<CodeRecord> records;
+
 		public void Load (List<CodeRecord> code)
 		{
-
+            records = code;
             var recs = new Dictionary<string, List<CodeRecord>>();
             foreach ( var rec in code ) {
                 if ( rec.Lines.Count == 0 ) continue;
@@ -132,7 +155,9 @@ namespace XR.Baboon
             var rec = treeManager.GetItem( args.Path, 0 );
             if ( rec != null ){
                 if ( rec.SourceFile != null ){
-                    OpenSourceFile( rec );
+                    var toopen = from r in records where r.SourceFile == rec.SourceFile select r;
+                    var tmp = new List<CodeRecord>( toopen );
+                    OpenSourceFile( tmp );
                 }
             }
         }
