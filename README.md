@@ -6,6 +6,7 @@ It will record which lines of your source are actually executed and
 log some basic statistics like call counts and the number of times 
 a line is actually run.
 
+![screenshot](https://raw.github.com/inorton/XR.Baboon/master/screenshots/baboon-001.png "Baboon Screenshot!")
 
 It built on top of Mono.Debugger.Soft and so requires the mono 
 runtime rather than the .Net one.
