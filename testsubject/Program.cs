@@ -6,8 +6,13 @@ namespace testsubject
     {
         public static void Main (string[] args)
         {          
-            for (int i = 0; i < 12; i++)
+
+            for (int i = 0; i < 12; i++){
+                var x = new SplineFinder();
+                x.Reticulate();
                 GetCount ();
+
+            }
 
 #if FALSE
             for (int i = 0; i < 22; i++)
@@ -25,6 +30,7 @@ namespace testsubject
         public static int GetCount ()
         {
             Console.WriteLine (count);
+
 
             if (count > 100) 
                 Foo ();

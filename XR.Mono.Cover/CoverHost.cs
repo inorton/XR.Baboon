@@ -17,7 +17,7 @@ namespace XR.Mono.Cover
 
         List<Regex> typeMatchers = new List<Regex> ();
 
-        List<AssemblyMirror> logAssemblies = new List<AssemblyMirror> ();
+        //List<AssemblyMirror> logAssemblies = new List<AssemblyMirror> ();
 
         public CodeRecordData DataStore { get; set; }
 
@@ -37,14 +37,13 @@ namespace XR.Mono.Cover
                 //Console.Error.WriteLine("tlr = "+ tl.Type.FullName);
                 foreach (var rx in typeMatchers) {
                     if (rx.IsMatch (tl.Type.FullName)) {
-                        if (!logAssemblies.Contains (tl.Type.Assembly)) {
-                            logAssemblies.Add (tl.Type.Assembly);
-
+                       
                             var meths = tl.Type.GetMethods ();
                             // make a record for all methods defined by this type
                             foreach (var m in meths) {
                                 CodeRecord rec;
                                 if (!records.TryGetValue (m.FullName, out rec)) {
+                                    //Console.Error.WriteLine("adding {0}",m.FullName);
                                     rec = new CodeRecord () { 
 										ClassName = m.DeclaringType.CSharpName,
                                         Assembly = m.DeclaringType.Assembly.GetName().FullName,
@@ -57,7 +56,8 @@ namespace XR.Mono.Cover
                                     DataStore.RegisterMethod( rec );
                                 } 
                             }
-                        }
+
+
                     }
                 }
             }
