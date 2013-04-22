@@ -1,0 +1,6 @@
+set -e
+START=`pwd`
+pushd covtool/bin/
+MONO_PATH=. mkbundle --deps --static covtool.exe
+cp covtool $START/.
+popd
