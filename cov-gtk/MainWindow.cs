@@ -35,6 +35,7 @@ namespace XR.Baboon
         }
 
         Dictionary<string,SourceView> sourceviews = new Dictionary<string, SourceView> ();
+        FilesystemMap fsmap = new FilesystemMap();
 
         public void OpenSourceFile (List<CodeRecord> recs)
         {
@@ -42,10 +43,41 @@ namespace XR.Baboon
                 return;
 
             var filename = recs [0].SourceFile;
-
+            var origfile = filename;
+            var fbname = System.IO.Path.GetFileName(filename);
             if (openFiles.Contains (filename))
                 return;
-            openFiles.Add (filename);
+
+            if ( fsmap.SourceMap.ContainsKey( filename ) ){
+                filename = fsmap.SourceMap[filename];
+            }
+
+            while (!File.Exists(filename)) {
+                var fc = new FileChooserDialog("Locate source file " + origfile.Substring( origfile.Length - 40, 40 ),
+                                               this, FileChooserAction.SelectFolder,
+                                               "Cancel", ResponseType.Cancel,
+                                               "Select", ResponseType.Apply);
+                fc.Filter = new Gtk.FileFilter(){ Name = fbname };
+                fc.Filter.AddPattern( fbname );
+
+                fc.Response += (o, args) => {
+                    Console.Error.WriteLine( fc.Filename );
+                    fc.Hide();
+
+                };
+
+                fc.Run();
+
+                if ( fc.Filename != null ){
+                    filename = System.IO.Path.Combine( fc.Filename, fbname );
+                } else {
+                    return;
+                }
+            }
+            fsmap.AddMapping( origfile, filename );
+
+
+            openFiles.Add (origfile);
 
             SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
             var buf = new SourceBuffer (language);
@@ -125,7 +157,9 @@ namespace XR.Baboon
 			
             itemtree.AppendColumn (covcol);
             itemtree.AppendColumn (namecol);
-            
+
+            itemtree.RowActivated += OnItemtreeRowActivated;
+
             this.ShowAll ();
         }
 
@@ -172,15 +206,19 @@ namespace XR.Baboon
                     OpenSourceFile (tmp);
                     SourceView sv = null;
 
-                    // assuming it is open, scroll to the thing we clicked
-                    if (sourceviews.TryGetValue (rec.SourceFile, out sv)) {
-                        var tm = new TextMark (rec.FullMethodName, true);
-                        var iter = sv.Buffer.GetIterAtLine (rec.Lines [0] - 1);
+                    string localfile = null;
+                    if ( fsmap.SourceMap.TryGetValue( rec.SourceFile, out localfile ) ){
 
-                        sv.Buffer.AddMark (tm, iter);
+                        // assuming it is open, scroll to the thing we clicked
+                        if (sourceviews.TryGetValue (localfile, out sv)) {
+                            var tm = new TextMark (rec.FullMethodName, true);
+                            var iter = sv.Buffer.GetIterAtLine (rec.Lines [0] - 1);
 
-                        sv.ScrollToMark (tm, 0.3, true, 0.1, 0.1);
-                        sv.Buffer.PlaceCursor (iter);
+                            sv.Buffer.AddMark (tm, iter);
+
+                            sv.ScrollToMark (tm, 0.3, true, 0.2, 0.2);
+                            sv.Buffer.PlaceCursor (iter);
+                        }
                     }
                 }
             }

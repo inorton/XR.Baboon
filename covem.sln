@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-gtk", "cov-gtk\cov-gtk.
 EndProject
 Project("{9344bdbb-3e7f-41fc-a0dd-8665d75ee146}") = "bundle", "bundle\bundle.mdproj", "{69DAE3DC-1529-4A56-A2C1-495053109816}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{C7A2C56A-334D-4196-B1AB-60E4F6B15624}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -30,6 +32,12 @@ Global
 		{AD6A8D4F-1BF1-4F5B-A77F-9B6CC5146DB7}.Default|Any CPU.Build.0 = Debug|x86
 		{AD6A8D4F-1BF1-4F5B-A77F-9B6CC5146DB7}.Release|x86.ActiveCfg = Release|x86
 		{AD6A8D4F-1BF1-4F5B-A77F-9B6CC5146DB7}.Release|x86.Build.0 = Release|x86
+		{C7A2C56A-334D-4196-B1AB-60E4F6B15624}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C7A2C56A-334D-4196-B1AB-60E4F6B15624}.Debug|x86.Build.0 = Debug|Any CPU
+		{C7A2C56A-334D-4196-B1AB-60E4F6B15624}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7A2C56A-334D-4196-B1AB-60E4F6B15624}.Default|Any CPU.Build.0 = Debug|Any CPU
+		{C7A2C56A-334D-4196-B1AB-60E4F6B15624}.Release|x86.ActiveCfg = Release|Any CPU
+		{C7A2C56A-334D-4196-B1AB-60E4F6B15624}.Release|x86.Build.0 = Release|Any CPU
 		{E5807044-7B26-40F1-8567-43927DC7090A}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{E5807044-7B26-40F1-8567-43927DC7090A}.Debug|x86.Build.0 = Debug|Any CPU
 		{E5807044-7B26-40F1-8567-43927DC7090A}.Default|Any CPU.ActiveCfg = Debug|Any CPU

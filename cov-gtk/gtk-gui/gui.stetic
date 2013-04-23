@@ -8,7 +8,7 @@
     <widget-library name="gnomedesktop-sharp, Version=2.20.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <widget-library name="gtksourceview2-sharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <widget-library name="../../covtool/bin/Debug/cov-gtk.exe" internal="true" />
+    <widget-library name="../../covtool/bin/cov-gtk.exe" internal="true" />
   </import>
   <widget class="Gtk.Window" id="XR.Baboon.MainWindow" design-size="700 423">
     <property name="MemberName" />
@@ -33,7 +33,6 @@
                 <property name="ShowScrollbars">True</property>
                 <property name="EnableSearch">False</property>
                 <property name="HeadersVisible">False</property>
-                <signal name="RowActivated" handler="OnItemtreeRowActivated" />
               </widget>
             </child>
           </widget>

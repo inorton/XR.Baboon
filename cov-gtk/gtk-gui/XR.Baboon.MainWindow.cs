@@ -51,7 +51,6 @@ namespace XR.Baboon
 			}
 			this.Show ();
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
-			this.itemtree.RowActivated += new global::Gtk.RowActivatedHandler (this.OnItemtreeRowActivated);
 		}
 	}
 }
