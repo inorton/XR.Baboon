@@ -11,6 +11,14 @@
     <widget-library name="../../covtool/bin/cov-gtk.exe" internal="true" />
   </import>
   <widget class="Gtk.Window" id="XR.Baboon.MainWindow" design-size="700 423">
+    <action-group name="Default">
+      <action id="openAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes" />
+        <property name="StockId">gtk-open</property>
+        <signal name="Activated" handler="OpenCoverageFile" />
+      </action>
+    </action-group>
     <property name="MemberName" />
     <property name="Title" translatable="yes">MainWindow</property>
     <property name="WindowPosition">CenterOnParent</property>
@@ -18,36 +26,61 @@
     <property name="DefaultHeight">440</property>
     <signal name="DeleteEvent" handler="OnDeleteEvent" />
     <child>
-      <widget class="Gtk.HPaned" id="hpaned1">
+      <widget class="Gtk.VBox" id="vbox1">
         <property name="MemberName" />
-        <property name="CanFocus">True</property>
-        <property name="Position">240</property>
+        <property name="Spacing">6</property>
         <child>
-          <widget class="Gtk.ScrolledWindow" id="GtkScrolledWindow">
+          <widget class="Gtk.Toolbar" id="toolbar1">
             <property name="MemberName" />
-            <property name="ShadowType">In</property>
+            <property name="ShowArrow">False</property>
+            <node name="__gtksharp_205_Stetic_Editor_ActionToolbar" type="Toolbar">
+              <node type="Toolitem" action="openAction" />
+            </node>
+          </widget>
+          <packing>
+            <property name="Position">0</property>
+            <property name="AutoSize">True</property>
+            <property name="Expand">False</property>
+            <property name="Fill">False</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="Gtk.HPaned" id="hpaned1">
+            <property name="MemberName" />
+            <property name="CanFocus">True</property>
+            <property name="Position">240</property>
             <child>
-              <widget class="Gtk.TreeView" id="itemtree">
+              <widget class="Gtk.ScrolledWindow" id="GtkScrolledWindow">
+                <property name="MemberName" />
+                <property name="ShadowType">In</property>
+                <child>
+                  <widget class="Gtk.TreeView" id="itemtree">
+                    <property name="MemberName" />
+                    <property name="CanFocus">True</property>
+                    <property name="ShowScrollbars">True</property>
+                    <property name="EnableSearch">False</property>
+                    <property name="HeadersVisible">False</property>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="Resize">False</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="Gtk.Notebook" id="notebook1">
                 <property name="MemberName" />
                 <property name="CanFocus">True</property>
-                <property name="ShowScrollbars">True</property>
-                <property name="EnableSearch">False</property>
-                <property name="HeadersVisible">False</property>
+                <property name="CurrentPage">-1</property>
+                <property name="Scrollable">True</property>
+                <property name="BorderWidth">3</property>
               </widget>
             </child>
           </widget>
           <packing>
-            <property name="Resize">False</property>
+            <property name="Position">1</property>
+            <property name="AutoSize">True</property>
           </packing>
-        </child>
-        <child>
-          <widget class="Gtk.Notebook" id="notebook1">
-            <property name="MemberName" />
-            <property name="CanFocus">True</property>
-            <property name="CurrentPage">-1</property>
-            <property name="Scrollable">True</property>
-            <property name="BorderWidth">3</property>
-          </widget>
         </child>
       </widget>
     </child>

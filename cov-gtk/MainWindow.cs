@@ -223,5 +223,22 @@ namespace XR.Baboon
                 }
             }
         }
+        protected void OpenCoverageFile(object sender, EventArgs e)
+        {
+            var fb = new FileChooserDialog( "Load a coverage file", this, FileChooserAction.Open, "Cancel", ResponseType.Cancel, "Open", ResponseType.Accept );
+            //fb.Filter = new FileFilter() { Name = "coverage files" };
+            //fb.Filter.AddPattern( "*.xcov" );
+            fb.Response += (o, args) => fb.Hide();
+            fb.Run();
+            var records = fb.Filename;
+            if ( !string.IsNullOrEmpty(records) && File.Exists(records) ) 
+            {
+                var dh = new CodeRecordData();
+                dh.Open( records );
+                var crs = dh.Load();
+                Load( crs );
+            }
+        }
+
     }
 }
