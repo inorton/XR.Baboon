@@ -67,6 +67,10 @@
     <Compile Include="gtk-gui\XR.Baboon.SourcePage.cs" />
     <Compile Include="CodeRecordCellRenderFuncs.cs" />
     <Compile Include="gtk-gui\XR.Baboon.CloserTabLabel.cs" />
+    <Compile Include="RemapSourceFoldersDialog.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.RemapSourceFoldersDialog.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.AssemblyItem.cs" />
+    <Compile Include="AssemblyItem.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

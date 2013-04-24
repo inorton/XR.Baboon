@@ -6,6 +6,7 @@ namespace XR.Baboon
 	{
 		private global::Gtk.UIManager UIManager;
 		private global::Gtk.Action openAction;
+		private global::Gtk.Action remapSourcePaths;
 		private global::Gtk.VBox vbox1;
 		private global::Gtk.Toolbar toolbar1;
 		private global::Gtk.HPaned hpaned1;
@@ -21,6 +22,9 @@ namespace XR.Baboon
 			global::Gtk.ActionGroup w1 = new global::Gtk.ActionGroup ("Default");
 			this.openAction = new global::Gtk.Action ("openAction", null, null, "gtk-open");
 			w1.Add (this.openAction, null);
+			this.remapSourcePaths = new global::Gtk.Action ("remapSourcePaths", global::Mono.Unix.Catalog.GetString ("Set Source Paths"), null, "gtk-preferences");
+			this.remapSourcePaths.ShortLabel = global::Mono.Unix.Catalog.GetString ("Set Source Paths");
+			w1.Add (this.remapSourcePaths, null);
 			this.UIManager.InsertActionGroup (w1, 0);
 			this.AddAccelGroup (this.UIManager.AccelGroup);
 			this.Name = "XR.Baboon.MainWindow";
@@ -33,7 +37,7 @@ namespace XR.Baboon
 			this.vbox1.Name = "vbox1";
 			this.vbox1.Spacing = 6;
 			// Container child vbox1.Gtk.Box+BoxChild
-			this.UIManager.AddUiFromString ("<ui><toolbar name='toolbar1'><toolitem name='openAction' action='openAction'/></toolbar></ui>");
+			this.UIManager.AddUiFromString ("<ui><toolbar name='toolbar1'><toolitem name='openAction' action='openAction'/><toolitem name='remapSourcePaths' action='remapSourcePaths'/></toolbar></ui>");
 			this.toolbar1 = ((global::Gtk.Toolbar)(this.UIManager.GetWidget ("/toolbar1")));
 			this.toolbar1.Name = "toolbar1";
 			this.toolbar1.ShowArrow = false;
@@ -79,6 +83,7 @@ namespace XR.Baboon
 			this.Show ();
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
 			this.openAction.Activated += new global::System.EventHandler (this.OpenCoverageFile);
+			this.remapSourcePaths.Activated += new global::System.EventHandler (this.OnRemapAssemblySource);
 		}
 	}
 }

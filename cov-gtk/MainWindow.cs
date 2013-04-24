@@ -240,5 +240,29 @@ namespace XR.Baboon
             }
         }
 
+        protected void OnRemapAssemblySource(object sender, EventArgs e)
+        {
+            if ( records == null || records.Count == 0 ) return;
+
+            var rd = new RemapSourceFoldersDialog();
+
+            rd.Response += (o, args) => {
+                rd.Hide();
+            };
+
+            var asmlist = (from x in records where true select x.Assembly).Distinct().ToArray();
+
+            foreach ( var asm in asmlist ) {
+                var recs = from x in records where x.Assembly == asm select x;
+                var asmrecs = recs.ToArray();
+                var parentpath = fsmap.FindMainFolder( asm, asmrecs );
+
+                rd.AddAssembly( asm, parentpath, null );
+
+            }
+
+            rd.Run();
+        }
+
     }
 }
