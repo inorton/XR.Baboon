@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Mono.Unix;
 using XR.Mono.Cover;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -13,12 +14,16 @@ namespace Covtool
 	{
         public static int Usage()
         {
-            Console.WriteLine("Usage: covem program.exe ARGUMENTS");
-            Console.WriteLine();
-            Console.WriteLine("Pass covem the same options you would pass to your program.");
-            Console.WriteLine("By default coverage will not be recorded. To" +
-                              "choose the namespaces covered, create a file called PROGRAM.covconf " +
-                              "containing a list of namespaces to cover (one regex per line)");
+            Console.WriteLine("Usage: covem PROGRAM ARGUMENTS");
+            Console.WriteLine(@"
+PROGRAM should be the path to your c# exe (not a shell script)
+
+Pass covem the same options you would pass to your program.
+
+By default coverage will not be recorded. To choose the 
+namespaces covered, create a file called PROGRAM.covconf 
+containing a list of namespaces to cover (one regex per line)
+");
             Console.WriteLine();
             Console.WriteLine("results are saved in PROGGRAM.covdb");
             Console.WriteLine();
@@ -43,14 +48,25 @@ namespace Covtool
             }
         }
 
+        public static void SignalHandler()
+        {
+            var sig = new UnixSignal( Mono.Unix.Native.Signum.SIGUSR2 );
+            var sigs = new UnixSignal[] { sig };
+
+            do {
+                UnixSignal.WaitAny( sigs, new TimeSpan(0,1,0) );
+                covertool.SaveData();
+            } while ( debugee != null && !debugee.HasExited );
+        }
+
         static Process debugee = null;
+        static CoverHost covertool = null;
 
 		public static int Main (string[] vargs)
 		{
             if ( vargs.Length == 0 ) return Usage();
             if ( Regex.IsMatch( vargs[0], "-h$|-help$" ) ) return Usage();
             if (!System.IO.File.Exists(vargs[0])) return Usage();
-
 
             // the first thing is the mono EXE we are running, everything else are args passed to it
             // we do no argument processing at all.
@@ -72,13 +88,17 @@ namespace Covtool
                 }
             }
 
-            var ct = CoverHostFactory.CreateHost ( program  + ".covdb", program, args.ToArray() );
-            debugee = ct.VirtualMachine.Process;
-            ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );
-			ct.Cover (patterns.ToArray ());
-			ct.Report ( program + ".covreport" );
+            CoverHost.RenameBackupFile( program + ".covdb" );
+            CoverHost.RenameBackupFile( program + ".covreport" );
 
-            return ct.VirtualMachine.Process.ExitCode;
+            covertool = CoverHostFactory.CreateHost ( program  + ".covdb", program, args.ToArray() );
+            debugee = covertool.VirtualMachine.Process;
+            ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
+            ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );
+			covertool.Cover (patterns.ToArray ());
+			covertool.Report ( program + ".covreport" );
+
+            return covertool.VirtualMachine.Process.ExitCode;
 		}
 	}
 }

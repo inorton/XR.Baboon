@@ -120,19 +120,20 @@ namespace XR.Mono.Cover
 
         public void Cover (params string[] typeMatchPatterns)
         {
+
+
             foreach (var t in typeMatchPatterns) {
                 var r = new Regex (t);
                 typeMatchers.Add (r);
             }
 
-            //bool firstMethod = true;
-            var b = VirtualMachine.CreateMethodEntryRequest ();
-            b.Enable ();
-
-            //StepEventRequest s;
-
-            Resume ();
             try {
+
+                var b = VirtualMachine.CreateMethodEntryRequest ();
+                b.Enable ();
+
+                Resume ();
+
                 do {
                     var evts = VirtualMachine.GetNextEventSet ();
                     foreach (var e in evts.Events) {
@@ -158,15 +159,24 @@ namespace XR.Mono.Cover
                     if (VirtualMachine.TargetProcess.HasExited)
                         break;
                 } while ( true );
-            } finally {
-
-                // record stats
-                foreach ( var rec in records.Values ) {
-                    DataStore.RegisterCalls( rec );
-                    DataStore.RegisterHits( rec );
+            } catch (Exception ex) {
+                if ( File.Exists("covhost.error") ) File.Delete("covhost.error");
+                using ( var f = new StreamWriter("covhost.error") ) {
+                    f.Write( ex.ToString() );
                 }
+            } finally {
+                SaveData();
 
                 DataStore.Close();
+            }
+        }
+
+        public void SaveData()
+        {
+            // record stats
+            foreach ( var rec in records.Values ) {
+                DataStore.RegisterCalls( rec );
+                DataStore.RegisterHits( rec );
             }
         }
 
@@ -175,13 +185,18 @@ namespace XR.Mono.Cover
             VirtualMachine.Resume ();
         }
 
-        public void Report ( string filename )
+        public static void RenameBackupFile( string filename )
         {
             if ( File.Exists(filename) ) {
                 var dt = File.GetCreationTime( filename )
                     .ToUniversalTime().Subtract( new DateTime(1970,1,1) );
                 File.Move( filename, String.Format( "{0}.{1}", filename, (int)dt.TotalSeconds ) );
             }
+        }
+
+        public void Report ( string filename )
+        {
+            RenameBackupFile(filename);
 
             using ( var f = new StreamWriter( filename ) )
             {
