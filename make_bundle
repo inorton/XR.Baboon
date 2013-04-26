@@ -1,7 +1,7 @@
 set -e
 START=`pwd`
 pushd covtool/bin/
-MONO_PATH=. mkbundle -c -o host.c -oo covem.o  --deps covtool.exe
+MONO_PATH=. mkbundle -c -o host.c -oo covem.o  --deps covem.exe
 
 CMD="cc -o covem -Wall `pkg-config --cflags mono-2` host.c \
  `pkg-config --libs-only-L mono-2` -Wl,-Bstatic -lmono-2.0 -Wl,-Bdynamic \

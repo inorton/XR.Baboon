@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Mono.Debugger.Soft;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -28,6 +29,7 @@ namespace XR.Mono.Cover
 				EventType.VMDeath,
 				EventType.TypeLoad
             );
+
         }
 
         public bool CheckTypeLoad (Event evt)
@@ -173,22 +175,31 @@ namespace XR.Mono.Cover
             VirtualMachine.Resume ();
         }
 
-        public void Report ()
+        public void Report ( string filename )
         {
-            var rv = records.Values.ToArray ();
-            Array.Sort (rv, (CodeRecord x, CodeRecord y) => {
-                var xa = string.Format (x.ClassName + ":" + x.Name);
-                var ya = string.Format (y.ClassName + ":" + y.Name);
+            if ( File.Exists(filename) ) {
+                var dt = File.GetCreationTime( filename )
+                    .ToUniversalTime().Subtract( new DateTime(1970,1,1) );
+                File.Move( filename, String.Format( "{0}.{1}", filename, (int)dt.TotalSeconds ) );
+            }
 
-                return xa.CompareTo (ya);
-            });
+            using ( var f = new StreamWriter( filename ) )
+            {
+                var rv = records.Values.ToArray ();
+                Array.Sort (rv, (CodeRecord x, CodeRecord y) => {
+                    var xa = string.Format (x.ClassName + "\t:" + x.Name);
+                    var ya = string.Format (y.ClassName + ":" + y.Name);
 
-            foreach (var r in rv) {
-                if (r.Lines.Count > 0) {
-                    Console.WriteLine (r);
-                    foreach (var l in r.Lines.Distinct()) {
-                        var hits = (from x in r.LineHits where x == l select x).Count ();
-                        Console.WriteLine ("{0}:{1:0000} {2}", r.SourceFile, l, hits);
+                    return xa.CompareTo (ya);
+                });
+
+                foreach (var r in rv) {
+                    if (r.Lines.Count > 0) {
+                        f.WriteLine (r);
+                        foreach (var l in r.Lines.Distinct()) {
+                            var hits = (from x in r.LineHits where x == l select x).Count ();
+                            f.WriteLine ("{0}:{1:0000} {2}", r.SourceFile, l, hits);
+                        }
                     }
                 }
             }
