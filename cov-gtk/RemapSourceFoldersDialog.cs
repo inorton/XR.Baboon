@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace XR.Baboon
 {
@@ -9,10 +11,13 @@ namespace XR.Baboon
             this.Build ();
         }
 
+        List<AssemblyItem> assemblies = new List<AssemblyItem>();
+
         public void AddAssembly( string asmname, string origPath, string mappedPath )
         {
             if ( origPath == null ) throw new ArgumentNullException("origPath");
             var item = new AssemblyItem();
+            assemblies.Add(item);
             item.SetAssembly( asmname );
             item.SetOriginalSourceFolder( origPath );
 
@@ -25,6 +30,12 @@ namespace XR.Baboon
 
             this.assemblyList.PackStart( item );
             this.assemblyList.ShowAll();
+        }
+
+        public string GetPathOfAssembly( string assembly )
+        {
+            var asm = from x in assemblies where x.AssemblyName == assembly select x.NewFolder;
+            return asm.FirstOrDefault();
         }
     }
 }

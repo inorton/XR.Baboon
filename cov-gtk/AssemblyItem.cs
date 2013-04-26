@@ -8,10 +8,14 @@ namespace XR.Baboon
         public AssemblyItem ()
         {
             this.Build ();
+            this.newFolderPath.FileSet += (sender, e) => {
+                NewFolder = newFolderPath.Filename;
+            };
         }
 
         public void SetAssembly ( string asm )
         {
+            AssemblyName = asm;
             this.assemblyName.Markup = "<b>" + asm + "</b>";
         }
 
@@ -28,6 +32,10 @@ namespace XR.Baboon
         {
             this.newFolderPath.SetFilename( folder );
         }
+
+        public string AssemblyName { get; private set; }
+
+        public string NewFolder { get; private set; }
     }
 }
 

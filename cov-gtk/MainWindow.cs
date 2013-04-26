@@ -53,7 +53,7 @@ namespace XR.Baboon
             }
 
             while (!File.Exists(filename)) {
-                var fc = new FileChooserDialog("Locate source file " + origfile.Substring( origfile.Length - 40, 40 ),
+                var fc = new FileChooserDialog("Locate source file " + origfile,
                                                this, FileChooserAction.SelectFolder,
                                                "Cancel", ResponseType.Cancel,
                                                "Select", ResponseType.Apply);
@@ -251,17 +251,42 @@ namespace XR.Baboon
             };
 
             var asmlist = (from x in records where true select x.Assembly).Distinct().ToArray();
-
+            Dictionary<string, string> oldpaths = new Dictionary<string, string>();
             foreach ( var asm in asmlist ) {
                 var recs = from x in records where x.Assembly == asm select x;
                 var asmrecs = recs.ToArray();
                 var parentpath = fsmap.FindMainFolder( asm, asmrecs );
-
+                oldpaths[asm] = parentpath;
                 rd.AddAssembly( asm, parentpath, null );
 
             }
 
-            rd.Run();
+            var rt = rd.Run();
+
+            if ( rt == (int)(ResponseType.Ok) ) {
+                Dictionary<string, string> newpaths = new Dictionary<string, string>();
+                foreach ( var asm in asmlist ) {
+                    var p = rd.GetPathOfAssembly( asm );
+                    newpaths[asm] = p;
+                }
+
+                foreach ( var rec in records ) {
+                    if ( newpaths.ContainsKey( rec.Assembly ) ){
+                        var oldp = oldpaths[rec.Assembly];
+                        var newp = newpaths[rec.Assembly];
+                        if ( !string.IsNullOrEmpty( rec.SourceFile ) ){
+                            var newf = newp + "/" + rec.SourceFile.Substring( oldp.Length ); 
+                            newf = newf.Replace("//","/");
+                            if ( File.Exists(newf) ){
+                                if ( newf.Length > 3 ) {
+                                    rec.SourceFile = newf;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
         }
 
     }

@@ -71,6 +71,8 @@
     <Compile Include="gtk-gui\XR.Baboon.RemapSourceFoldersDialog.cs" />
     <Compile Include="gtk-gui\XR.Baboon.AssemblyItem.cs" />
     <Compile Include="AssemblyItem.cs" />
+    <Compile Include="FindSourceFileDialog.cs" />
+    <Compile Include="gtk-gui\XR.Baboon.FindSourceFileDialog.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
