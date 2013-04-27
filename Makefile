@@ -2,6 +2,7 @@ XR_COV_LIB=XR.Mono.Cover/bin/Release/XR.Mono.Cover.dll
 XR_COV_CON=covtool/bin/Release/covtool.exe
 
 all: 
+	git submodule update --init
 	xbuild /property:Configuration=Release 
 
 clean:

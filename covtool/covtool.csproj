@@ -35,8 +35,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Mono.Debugger.Soft" />
     <Reference Include="Mono.Posix" />
+    <Reference Include="Mono.Debugger.Soft" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />

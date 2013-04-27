@@ -8,13 +8,19 @@ using System.Linq;
 namespace XR.Mono.Cover
 {
 
+    class BreakPoint
+    {
+        public BreakpointEventRequest Request { get; set; }
+        public Location Location { get; set; }
+        public CodeRecord Record { get; set; }
+    }
+
+
     public class CoverHost
     {
         public VirtualMachine VirtualMachine { get; private set; }
 
         Dictionary<string, CodeRecord> records = new Dictionary<string, CodeRecord> ();
-
-        Dictionary<long,StepEventRequest> stepreqs = new Dictionary<long, StepEventRequest> ();
 
         List<Regex> typeMatchers = new List<Regex> ();
 
@@ -32,6 +38,9 @@ namespace XR.Mono.Cover
 
         }
 
+        Dictionary<string,List<BreakPoint>> bps = new Dictionary<string, List<BreakPoint>> ();
+        Dictionary<BreakpointEventRequest,BreakPoint> rbps = new Dictionary<BreakpointEventRequest, BreakPoint> ();
+
         public bool CheckTypeLoad (Event evt)
         {
             var tl = evt as TypeLoadEvent;
@@ -40,13 +49,13 @@ namespace XR.Mono.Cover
                 foreach (var rx in typeMatchers) {
                     if (rx.IsMatch (tl.Type.FullName)) {
                        
-                            var meths = tl.Type.GetMethods ();
-                            // make a record for all methods defined by this type
-                            foreach (var m in meths) {
-                                CodeRecord rec;
-                                if (!records.TryGetValue (m.FullName, out rec)) {
-                                    //Console.Error.WriteLine("adding {0}",m.FullName);
-                                    rec = new CodeRecord () { 
+                        var meths = tl.Type.GetMethods ();
+                        // make a record for all methods defined by this type
+                        foreach (var m in meths) {
+                            CodeRecord rec;
+                            if (!records.TryGetValue (m.FullName, out rec)) {
+                                //Console.Error.WriteLine("adding {0}",m.FullName);
+                                rec = new CodeRecord () { 
 										ClassName = m.DeclaringType.CSharpName,
                                         Assembly = m.DeclaringType.Assembly.GetName().FullName,
 										Name = m.Name,
@@ -54,10 +63,23 @@ namespace XR.Mono.Cover
 										Lines = new List<int>( m.LineNumbers ),
 										SourceFile = m.SourceFile,
 									};
-                                    records.Add (m.FullName, rec);
-                                    DataStore.RegisterMethod( rec );
-                                } 
-                            }
+
+                                if (!bps.ContainsKey (m.FullName)) {
+                                    bps [m.FullName] = new List<BreakPoint> ();
+                                    // add a break on each line
+                                    foreach (var l in m.Locations) {
+                                        var bp = VirtualMachine.CreateBreakpointRequest (l);
+                                        var b = new BreakPoint () { Location = l, Record = rec, Request = bp };
+                                        bps [m.FullName].Add (b);
+                                        rbps [bp] = b;
+                                        bp.Enabled = true;
+                                    }
+                                }
+
+                                records.Add (m.FullName, rec);
+                                DataStore.RegisterMethod (rec);
+                            } 
+                        }
 
 
                     }
@@ -71,51 +93,35 @@ namespace XR.Mono.Cover
             return CheckMethodEntryRequest (evt);
         }
 
-        void SetupThreadStep (MethodEntryEvent meth)
-        {
-            if (!stepreqs.ContainsKey (meth.Thread.Id)) {
-                var s = VirtualMachine.CreateStepRequest (meth.Thread);
-                s.Filter = StepFilter.DebuggerHidden;
-                s.Size = StepSize.Line;
-                s.Depth = StepDepth.Into;
-                stepreqs [meth.Thread.Id] = s;
-                s.Enabled = true;
-            }
-        }
 
         public bool CheckMethodEntryRequest (Event evt)
         {
             var met = evt as MethodEntryEvent;
             if (met != null) {
-                SetupThreadStep (met);
                 CodeRecord rec = null;
                 //Console.Error.WriteLine( met.Method.FullName );
                 if (records.TryGetValue (met.Method.FullName, out rec)) {
                     rec.CallCount++;
-                    if (rec.Lines.Count > 0) 
-                        rec.Hit (rec.Lines [0]);
+                    //if (rec.Lines.Count > 0) 
+                    //    rec.Hit (rec.Lines [0]);
 
                 }
             }
             return met != null;
         }
 
-        public bool CheckStepRequest (Event evt)
+        public bool CheckBreakPointRequest (Event evt)
         {
-            var step = evt as StepEvent;
-            if (step != null) {
+            var bpe = evt as BreakpointEvent;
+            if (bpe != null) {
+                BreakPoint bp = null;
+                if (rbps.TryGetValue (bpe.Request as BreakpointEventRequest, out bp)) {
+                    CodeRecord rec = bp.Record;
+                    rec.Hit (bp.Location.LineNumber);
 
-                CodeRecord rec = null;
-                if (records.TryGetValue (step.Method.FullName, out rec)) {
-                    var loc = step.Thread.GetFrames () [0].Location;
-                    if (loc.LineNumber > 0) {
-                        rec.Hit (loc.LineNumber);
-                        //Console.Error.WriteLine( loc );
-                        //System.Threading.Thread.Sleep(1000);
-                    }
                 }
             }
-            return step != null;
+            return bpe != null;
         }
 
         public void Cover (params string[] typeMatchPatterns)
@@ -138,10 +144,12 @@ namespace XR.Mono.Cover
                     var evts = VirtualMachine.GetNextEventSet ();
                     foreach (var e in evts.Events) {
 
+                        if (CheckBreakPointRequest (e))
+                            continue;
+
                         if (CheckMethodRequests (e))
                             continue;
-                        if (CheckStepRequest (e))
-                            continue;
+
                         if (CheckTypeLoad (e))
                             continue;
 
@@ -160,23 +168,24 @@ namespace XR.Mono.Cover
                         break;
                 } while ( true );
             } catch (Exception ex) {
-                if ( File.Exists("covhost.error") ) File.Delete("covhost.error");
-                using ( var f = new StreamWriter("covhost.error") ) {
-                    f.Write( ex.ToString() );
+                if (File.Exists ("covhost.error"))
+                    File.Delete ("covhost.error");
+                using (var f = new StreamWriter("covhost.error")) {
+                    f.Write (ex.ToString ());
                 }
             } finally {
-                SaveData();
+                SaveData ();
 
-                DataStore.Close();
+                DataStore.Close ();
             }
         }
 
-        public void SaveData()
+        public void SaveData ()
         {
             // record stats
-            foreach ( var rec in records.Values ) {
-                DataStore.RegisterCalls( rec );
-                DataStore.RegisterHits( rec );
+            foreach (var rec in records.Values) {
+                DataStore.RegisterCalls (rec);
+                DataStore.RegisterHits (rec);
             }
         }
 
@@ -185,21 +194,20 @@ namespace XR.Mono.Cover
             VirtualMachine.Resume ();
         }
 
-        public static void RenameBackupFile( string filename )
+        public static void RenameBackupFile (string filename)
         {
-            if ( File.Exists(filename) ) {
-                var dt = File.GetCreationTime( filename )
-                    .ToUniversalTime().Subtract( new DateTime(1970,1,1) );
-                File.Move( filename, String.Format( "{0}.{1}", filename, (int)dt.TotalSeconds ) );
+            if (File.Exists (filename)) {
+                var dt = File.GetCreationTime (filename)
+                    .ToUniversalTime ().Subtract (new DateTime (1970, 1, 1));
+                File.Move (filename, String.Format ("{0}.{1}", filename, (int)dt.TotalSeconds));
             }
         }
 
-        public void Report ( string filename )
+        public void Report (string filename)
         {
-            RenameBackupFile(filename);
+            RenameBackupFile (filename);
 
-            using ( var f = new StreamWriter( filename ) )
-            {
+            using (var f = new StreamWriter( filename )) {
                 var rv = records.Values.ToArray ();
                 Array.Sort (rv, (CodeRecord x, CodeRecord y) => {
                     var xa = string.Format (x.ClassName + "\t:" + x.Name);

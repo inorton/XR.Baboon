@@ -28,9 +28,9 @@ namespace XR.Mono.Cover
             LineHits.Add (line);
         }
 
-        public int GetHits( int line )
+        public int GetHits (int line)
         {
-            return ( from x in LineHits where x == line select x ).Count();
+            return (from x in LineHits where x == line select x).Count ();
         }
 
         public virtual double Coverage {

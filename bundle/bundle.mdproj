@@ -9,7 +9,7 @@
     <ProjectGuid>{69DAE3DC-1529-4A56-A2C1-495053109816}</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Default|AnyCPU' ">
-    <OutputPath>.\</OutputPath>
+    <OutputPath>.</OutputPath>
     <CustomCommands>
       <CustomCommands>
         <Command type="Execute" command="bash make_bundke" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
