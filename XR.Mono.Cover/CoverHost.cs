@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Mono.Debugger.Soft;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -28,6 +29,7 @@ namespace XR.Mono.Cover
 				EventType.VMDeath,
 				EventType.TypeLoad
             );
+
         }
 
         public bool CheckTypeLoad (Event evt)
@@ -118,19 +120,20 @@ namespace XR.Mono.Cover
 
         public void Cover (params string[] typeMatchPatterns)
         {
+
+
             foreach (var t in typeMatchPatterns) {
                 var r = new Regex (t);
                 typeMatchers.Add (r);
             }
 
-            //bool firstMethod = true;
-            var b = VirtualMachine.CreateMethodEntryRequest ();
-            b.Enable ();
-
-            //StepEventRequest s;
-
-            Resume ();
             try {
+
+                var b = VirtualMachine.CreateMethodEntryRequest ();
+                b.Enable ();
+
+                Resume ();
+
                 do {
                     var evts = VirtualMachine.GetNextEventSet ();
                     foreach (var e in evts.Events) {
@@ -156,15 +159,24 @@ namespace XR.Mono.Cover
                     if (VirtualMachine.TargetProcess.HasExited)
                         break;
                 } while ( true );
-            } finally {
-
-                // record stats
-                foreach ( var rec in records.Values ) {
-                    DataStore.RegisterCalls( rec );
-                    DataStore.RegisterHits( rec );
+            } catch (Exception ex) {
+                if ( File.Exists("covhost.error") ) File.Delete("covhost.error");
+                using ( var f = new StreamWriter("covhost.error") ) {
+                    f.Write( ex.ToString() );
                 }
+            } finally {
+                SaveData();
 
                 DataStore.Close();
+            }
+        }
+
+        public void SaveData()
+        {
+            // record stats
+            foreach ( var rec in records.Values ) {
+                DataStore.RegisterCalls( rec );
+                DataStore.RegisterHits( rec );
             }
         }
 
@@ -173,22 +185,36 @@ namespace XR.Mono.Cover
             VirtualMachine.Resume ();
         }
 
-        public void Report ()
+        public static void RenameBackupFile( string filename )
         {
-            var rv = records.Values.ToArray ();
-            Array.Sort (rv, (CodeRecord x, CodeRecord y) => {
-                var xa = string.Format (x.ClassName + ":" + x.Name);
-                var ya = string.Format (y.ClassName + ":" + y.Name);
+            if ( File.Exists(filename) ) {
+                var dt = File.GetCreationTime( filename )
+                    .ToUniversalTime().Subtract( new DateTime(1970,1,1) );
+                File.Move( filename, String.Format( "{0}.{1}", filename, (int)dt.TotalSeconds ) );
+            }
+        }
 
-                return xa.CompareTo (ya);
-            });
+        public void Report ( string filename )
+        {
+            RenameBackupFile(filename);
 
-            foreach (var r in rv) {
-                if (r.Lines.Count > 0) {
-                    Console.WriteLine (r);
-                    foreach (var l in r.Lines.Distinct()) {
-                        var hits = (from x in r.LineHits where x == l select x).Count ();
-                        Console.WriteLine ("{0}:{1:0000} {2}", r.SourceFile, l, hits);
+            using ( var f = new StreamWriter( filename ) )
+            {
+                var rv = records.Values.ToArray ();
+                Array.Sort (rv, (CodeRecord x, CodeRecord y) => {
+                    var xa = string.Format (x.ClassName + "\t:" + x.Name);
+                    var ya = string.Format (y.ClassName + ":" + y.Name);
+
+                    return xa.CompareTo (ya);
+                });
+
+                foreach (var r in rv) {
+                    if (r.Lines.Count > 0) {
+                        f.WriteLine (r);
+                        foreach (var l in r.Lines.Distinct()) {
+                            var hits = (from x in r.LineHits where x == l select x).Count ();
+                            f.WriteLine ("{0}:{1:0000} {2}", r.SourceFile, l, hits);
+                        }
                     }
                 }
             }

@@ -35,6 +35,7 @@ namespace XR.Baboon
         }
 
         Dictionary<string,SourceView> sourceviews = new Dictionary<string, SourceView> ();
+        FilesystemMap fsmap = new FilesystemMap();
 
         public void OpenSourceFile (List<CodeRecord> recs)
         {
@@ -42,10 +43,41 @@ namespace XR.Baboon
                 return;
 
             var filename = recs [0].SourceFile;
-
+            var origfile = filename;
+            var fbname = System.IO.Path.GetFileName(filename);
             if (openFiles.Contains (filename))
                 return;
-            openFiles.Add (filename);
+
+            if ( fsmap.SourceMap.ContainsKey( filename ) ){
+                filename = fsmap.SourceMap[filename];
+            }
+
+            while (!File.Exists(filename)) {
+                var fc = new FileChooserDialog("Locate source file " + origfile,
+                                               this, FileChooserAction.SelectFolder,
+                                               "Cancel", ResponseType.Cancel,
+                                               "Select", ResponseType.Apply);
+                fc.Filter = new Gtk.FileFilter(){ Name = fbname };
+                fc.Filter.AddPattern( fbname );
+
+                fc.Response += (o, args) => {
+                    Console.Error.WriteLine( fc.Filename );
+                    fc.Hide();
+
+                };
+
+                fc.Run();
+
+                if ( fc.Filename != null ){
+                    filename = System.IO.Path.Combine( fc.Filename, fbname );
+                } else {
+                    return;
+                }
+            }
+            fsmap.AddMapping( origfile, filename );
+
+
+            openFiles.Add (origfile);
 
             SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
             var buf = new SourceBuffer (language);
@@ -125,7 +157,9 @@ namespace XR.Baboon
 			
             itemtree.AppendColumn (covcol);
             itemtree.AppendColumn (namecol);
-            
+
+            itemtree.RowActivated += OnItemtreeRowActivated;
+
             this.ShowAll ();
         }
 
@@ -172,18 +206,88 @@ namespace XR.Baboon
                     OpenSourceFile (tmp);
                     SourceView sv = null;
 
-                    // assuming it is open, scroll to the thing we clicked
-                    if (sourceviews.TryGetValue (rec.SourceFile, out sv)) {
-                        var tm = new TextMark (rec.FullMethodName, true);
-                        var iter = sv.Buffer.GetIterAtLine (rec.Lines [0] - 1);
+                    string localfile = null;
+                    if ( fsmap.SourceMap.TryGetValue( rec.SourceFile, out localfile ) ){
 
-                        sv.Buffer.AddMark (tm, iter);
+                        // assuming it is open, scroll to the thing we clicked
+                        if (sourceviews.TryGetValue (localfile, out sv)) {
+                            var tm = new TextMark (rec.FullMethodName, true);
+                            var iter = sv.Buffer.GetIterAtLine (rec.Lines [0] - 1);
 
-                        sv.ScrollToMark (tm, 0.3, true, 0.1, 0.1);
-                        sv.Buffer.PlaceCursor (iter);
+                            sv.Buffer.AddMark (tm, iter);
+
+                            sv.ScrollToMark (tm, 0.3, true, 0.2, 0.2);
+                            sv.Buffer.PlaceCursor (iter);
+                        }
                     }
                 }
             }
         }
+        protected void OpenCoverageFile(object sender, EventArgs e)
+        {
+            var fb = new FileChooserDialog( "Load a coverage file", this, FileChooserAction.Open, "Cancel", ResponseType.Cancel, "Open", ResponseType.Accept );
+            //fb.Filter = new FileFilter() { Name = "coverage files" };
+            //fb.Filter.AddPattern( "*.xcov" );
+            fb.Response += (o, args) => fb.Hide();
+            fb.Run();
+            var records = fb.Filename;
+            if ( !string.IsNullOrEmpty(records) && File.Exists(records) ) 
+            {
+                var dh = new CodeRecordData();
+                dh.Open( records );
+                var crs = dh.Load();
+                Load( crs );
+            }
+        }
+
+        protected void OnRemapAssemblySource(object sender, EventArgs e)
+        {
+            if ( records == null || records.Count == 0 ) return;
+
+            var rd = new RemapSourceFoldersDialog();
+
+            rd.Response += (o, args) => {
+                rd.Hide();
+            };
+
+            var asmlist = (from x in records where true select x.Assembly).Distinct().ToArray();
+            Dictionary<string, string> oldpaths = new Dictionary<string, string>();
+            foreach ( var asm in asmlist ) {
+                var recs = from x in records where x.Assembly == asm select x;
+                var asmrecs = recs.ToArray();
+                var parentpath = fsmap.FindMainFolder( asm, asmrecs );
+                oldpaths[asm] = parentpath;
+                rd.AddAssembly( asm, parentpath, null );
+
+            }
+
+            var rt = rd.Run();
+
+            if ( rt == (int)(ResponseType.Ok) ) {
+                Dictionary<string, string> newpaths = new Dictionary<string, string>();
+                foreach ( var asm in asmlist ) {
+                    var p = rd.GetPathOfAssembly( asm );
+                    newpaths[asm] = p;
+                }
+
+                foreach ( var rec in records ) {
+                    if ( newpaths.ContainsKey( rec.Assembly ) ){
+                        var oldp = oldpaths[rec.Assembly];
+                        var newp = newpaths[rec.Assembly];
+                        if ( !string.IsNullOrEmpty( rec.SourceFile ) ){
+                            var newf = newp + "/" + rec.SourceFile.Substring( oldp.Length ); 
+                            newf = newf.Replace("//","/");
+                            if ( File.Exists(newf) ){
+                                if ( newf.Length > 3 ) {
+                                    rec.SourceFile = newf;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
     }
 }
