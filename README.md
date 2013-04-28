@@ -1,5 +1,8 @@
 XR.Mono.Cover (c) 2013 Ian Norton
-----------------------------------
+==================================
+
+About
+------
 
 XR.Mono.Cover is a simple code coverage tool specifically for mono. 
 It will record which lines of your source are actually executed and 
@@ -28,36 +31,36 @@ one day of Mono.Debugger.Soft does, this will too.
 I'm only aiming at linux but this should work well on OSX and Windows ( if you install mono ).
 
 Building
-=========
+---------
 
 Builing baboon is fairly easy, you can use mdtool to build the solution file or load it in
 monodevelop.
 
 If you wish to make the bundled binary (not necessary but easier to deploy) do:
 
-$ bash make_bundle
+`$ bash make_bundle`
 
 Which should give you the 'covem' program (on linux anyway)
 
 Running
-========
+--------
 
-Be sure to deploy the libsqlite3.so.0 C library wherever you run your app. If it is the same machine 
+Be sure to deploy the `libsqlite3.so.0` C library wherever you run your app. If it is the same machine 
 as the build was done on you neede't worry. Your 'test' program/assembly needs to have been built 
 with debugging enabled (you need the mdb files) else baboon won't know how to inspect the 
 running code.
 
 First, we need to create a coverage config file to tell covem what classes/types you want to record
 coverage data for. If you have a called called 'XR.HttpFileStream' and if your program is called 
-'myserver.exe' then create a text file called 'myserver.exe.covcfg' and add a line to it that
+'`myserver.exe`' then create a text file called '`myserver.exe.covcfg`' and add a line to it that
 contains a regex to match your type name like so:
 
-^XR.HttpFileStream
+`^XR.HttpFileStream`
 
 Save it, and then run your program as usual but put 'covem' (or the full path to the covem program 
 or exe) atthe start of the line. Eg,
 
-$ /home/inb/tmp/covem myserver.exe --port 19000 --verbose
+`$ /home/inb/tmp/covem myserver.exe --port 19000 --verbose`
 
 And baboon will start the program and start recording coverage data.
 
@@ -65,5 +68,5 @@ Results
 ========
 
 Looking at results is fairly easy, Once your program has ended ( or after every 2 minutes, or 
-after sending it SIGUSR2 ) you will find a new file called 'myserver.exe.covdb' simply launch
+after sending it _SIGUSR2_ ) you will find a new file called '`myserver.exe.covdb`' simply launch
 the cov-gtk app and load this file using the open button and you'll see coverage data as above.
