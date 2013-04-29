@@ -75,9 +75,17 @@ containing a list of namespaces to cover (one regex per line)
             var args = vargs.Skip(1);
             var patterns = new List<string> ();
 
-            // we look for a file in the same folder as the EXE named EXE.covcfg
-            if ( File.Exists( program + ".covcfg" ) ) {
-                using ( var f = File.OpenText( program + ".covcfg" ) ) {
+            // we look in BABOON_CFG for a config file
+            var env = Environment.GetEnvironmentVariable("BABOON_CFG");
+            // else we look for a file in the same folder as the EXE named EXE.covcfg
+            var cfgfile = program + ".covcfg";
+
+            if ( !string.IsNullOrEmpty( env ) ){
+                cfgfile = env;
+            }
+
+            if ( File.Exists( cfgfile ) ) {
+                using ( var f = File.OpenText( cfgfile ) ) {
                     string l = null;
                     do {
                         l = f.ReadLine();
@@ -87,6 +95,8 @@ containing a list of namespaces to cover (one regex per line)
                     } while ( l != null );
                 }
             }
+
+
 
             CoverHost.RenameBackupFile( program + ".covdb" );
             CoverHost.RenameBackupFile( program + ".covreport" );
