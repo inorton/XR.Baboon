@@ -21,8 +21,27 @@ PROGRAM should be the path to your c# exe (not a shell script)
 Pass covem the same options you would pass to your program.
 
 By default coverage will not be recorded. To choose the 
-namespaces covered, create a file called PROGRAM.covconf 
-containing a list of namespaces to cover (one regex per line)
+namespaces covered, create a text file containing a list of types 
+to cover (one regex per line) and save it in the same folder as the 
+c# exe file with the same name but with '.covcfg' appended. Eg:
+
+testsubject.exe
+testsubject.exe.covcfg
+
+If it is not convenient to place the config file in the same folder or
+with the same name, you can pass baboon the BABOON_CFG environment
+variable with a full path to your config file. Eg:
+
+BABOON_CFG=/home/inb/tests.cfg /usr/local/bin/covem ./server.exe --run
+
+Configuration files should usually be written to match the beginning 
+of a type name like so:
+
+^System.Data.Sqlite
+^MyProject.Program
+^XR.HttpFileStream
+
+
 ");
             Console.WriteLine();
             Console.WriteLine("results are saved in PROGGRAM.covdb");
