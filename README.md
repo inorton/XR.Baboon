@@ -11,7 +11,7 @@ a line is actually run.
 
 ![screenshot](https://raw.github.com/inorton/XR.Baboon/master/screenshots/baboon-001.png "Baboon Screenshot!")
 
-It built on top of Mono.Debugger.Soft and so requires the mono 
+It is built on top of Mono.Debugger.Soft and so requires the mono 
 runtime rather than the .Net one.
 
 Results are gathered by the covtool program and can be 
@@ -26,14 +26,14 @@ nunit-console or even graphical apps. In time covtool may allow you
 to attach to existing processes after they have started.
 
 XR.Mono.Cover will not check coverage of unmanaged code, perhaps 
-one day of Mono.Debugger.Soft does, this will too.
+one day if Mono.Debugger.Soft does, this will too.
 
 I'm only aiming at linux but this should work well on OSX and Windows ( if you install mono ).
 
 Building
 ---------
 
-Builing baboon is fairly easy, you can use mdtool to build the solution file or load it in
+Building baboon is fairly easy, you can use mdtool to build the solution file or load it in
 monodevelop.
 
 If you wish to make the bundled binary (not necessary but easier to deploy) do:
