@@ -117,15 +117,15 @@ of a type name like so:
 
 
 
-            CoverHost.RenameBackupFile( program + ".covdb" );
-            CoverHost.RenameBackupFile( program + ".covreport" );
+            CoverHost.RenameBackupFile( cfgfile + ".covdb" );
+            CoverHost.RenameBackupFile( cfgfile + ".covreport" );
 
-            covertool = CoverHostFactory.CreateHost ( program  + ".covdb", program, args.ToArray() );
+            covertool = CoverHostFactory.CreateHost ( cfgfile  + ".covdb", program, args.ToArray() );
             debugee = covertool.VirtualMachine.Process;
             ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
             ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );
 			covertool.Cover (patterns.ToArray ());
-			covertool.Report ( program + ".covreport" );
+            covertool.Report ( cfgfile + ".covreport" );
 
             return covertool.VirtualMachine.Process.ExitCode;
 		}
