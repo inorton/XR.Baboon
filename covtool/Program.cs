@@ -115,8 +115,6 @@ of a type name like so:
                 }
             }
 
-
-
             CoverHost.RenameBackupFile( cfgfile + ".covdb" );
             CoverHost.RenameBackupFile( cfgfile + ".covreport" );
 
