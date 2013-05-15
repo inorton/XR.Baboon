@@ -9,7 +9,7 @@ namespace XR.Mono.Cover
     public class CodeRecord
     {
         public List<int> Lines { get; set; }
-        public List<int> LineHits { get; set; }
+
         public string SourceFile { get; set; }
         public string Assembly { get; set; }
         public string ClassName { get; set; }
@@ -20,23 +20,41 @@ namespace XR.Mono.Cover
         public CodeRecord ()
         {
             Lines = new List<int> ();
-            LineHits = new List<int> ();
         }
+
+        Dictionary<int,int> hitCounts = new Dictionary<int, int>();
 
         public void Hit (int line)
         { 
-            LineHits.Add (line);
+            if ( !hitCounts.ContainsKey( line ) )
+                hitCounts[line] = 0;
+            hitCounts[line]++;
+        }
+
+        public void SetHits( int line, int hitcount )
+        {
+            if ( hitcount > 0 ){
+                hitCounts[line] = hitcount;
+            } else {
+                if ( hitCounts.ContainsKey(line) ) hitCounts.Remove(line);
+            }
         }
 
         public int GetHits (int line)
         {
-            return (from x in LineHits where x == line select x).Count ();
+            if ( hitCounts.ContainsKey( line ) )
+                return hitCounts[line];
+            return 0;
+        }
+
+        public int GetHits() 
+        {
+            return hitCounts.Count;
         }
 
         public virtual double Coverage {
             get {
-                var hits = LineHits.Distinct ();
-                return (hits.Count () * 1.0) / Lines.Distinct ().Count ();
+                return (hitCounts.Count * 1.0) / Lines.Distinct ().Count ();
             }
             set {}
         }

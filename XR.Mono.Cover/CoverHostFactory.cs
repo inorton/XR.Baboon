@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Mono.Debugger.Soft;
 using System.Collections.Generic;
 
@@ -20,7 +21,13 @@ namespace XR.Mono.Cover
             var data = new CodeRecordData();
             data.Open( covfile );
 
-            var rv = new CoverHost ( args.ToArray() ) { DataStore = data };
+            var logfile = covfile + ".log";
+            var log = new StreamWriter( logfile );
+
+            var rv = new CoverHost ( args.ToArray() ) { 
+                DataStore = data,
+                LogFile = log,
+            };
 			return rv;
 		}
 	}

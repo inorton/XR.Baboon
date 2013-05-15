@@ -23,7 +23,7 @@ namespace XR.Baboon
             } );
 			foreach (var r in records) {
 				total_lines += r.Lines.Distinct ().Count ();
-				covered_lines += r.LineHits.Distinct ().Count ();
+                covered_lines += r.GetHits();
 				TStore.AppendValues (iter, r);
 			}
 			ns.Coverage = 1.0 * covered_lines / total_lines;

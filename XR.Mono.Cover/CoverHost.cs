@@ -18,6 +18,8 @@ namespace XR.Mono.Cover
 
     public class CoverHost
     {
+        public TextWriter LogFile { get; set; }
+
         public VirtualMachine VirtualMachine { get; private set; }
 
         Dictionary<string, CodeRecord> records = new Dictionary<string, CodeRecord> ();
@@ -28,12 +30,29 @@ namespace XR.Mono.Cover
 
         public CodeRecordData DataStore { get; set; }
 
+
+        long logcount = 0;
+
+        public void Log( string fmt, params object[] args )
+        {
+            if ( LogFile != null ){
+                LogFile.WriteLine( fmt, args );
+                logcount++;
+
+                if ( logcount % 10 == 0 ) {
+                    LogFile.Flush();
+                }
+            }
+        }
+
         public CoverHost (params string[] args)
         {
             VirtualMachine = VirtualMachineManager.Launch (args);
             VirtualMachine.EnableEvents (
 				EventType.VMDeath,
-				EventType.TypeLoad
+                EventType.VMDisconnect,
+				EventType.AssemblyLoad,
+                EventType.TypeLoad
             );
 
         }
@@ -41,51 +60,127 @@ namespace XR.Mono.Cover
         Dictionary<string,List<BreakPoint>> bps = new Dictionary<string, List<BreakPoint>> ();
         Dictionary<BreakpointEventRequest,BreakPoint> rbps = new Dictionary<BreakpointEventRequest, BreakPoint> ();
 
+        HashSet <string> loadedTypes = new HashSet<string>();
+        HashSet <string> loadedAssemblies = new HashSet<string>();
+
+        void MarkAssembly( AssemblyMirror a )
+        {
+            var name = a.GetName().FullName;
+            if ( loadedAssemblies.Contains( name ) ) return;
+
+            var afile = a.Location;
+            Log ("load assembly {0} from {1}", name, afile);
+
+            if ( File.Exists( afile ) ){
+                Log ("inspecting {0} for types", afile );
+                try {
+                    var asm = System.Reflection.Assembly.ReflectionOnlyLoadFrom( afile );
+                    loadedAssemblies.Add( name );
+                    if ( asm != null ){
+                        Log ("loaded {0}", afile);
+                        foreach ( var t in asm.GetTypes() ){
+                            foreach (var rx in typeMatchers) {
+                                if (rx.IsMatch (t.FullName)) {
+                                    Log ("matched type {0}", t.FullName);
+                                    MarkLoadedType( a, t );
+                                }
+                            }
+                        }
+                    }
+                } catch ( System.Reflection.ReflectionTypeLoadException ) {
+                    Log ("warning: could not load types from {0}", afile );
+                    loadedAssemblies.Add( name ); // don't try again
+                } finally {
+
+                }
+
+            } else {
+                Log ("assembly file {0} missing", afile);
+            }
+
+        }
+
+        void MarkLoadedType( AssemblyMirror a, Type t )
+        {
+            if ( loadedTypes.Contains( t.FullName ) ) return;
+
+            var tm = a.GetType( t.FullName );
+
+            Log("adding reflected matched type {0}",tm.FullName);
+
+            MarkType( tm );
+
+        }
+
+        void MarkType( TypeMirror t )
+        {
+            MarkAssembly( t.Assembly );
+
+            if ( loadedTypes.Contains( t.FullName ) ) return;
+
+            Log("adding matched type {0}",t.FullName);
+
+            loadedTypes.Add( t.FullName );
+
+            var meths = t.GetMethods ();
+            // make a record for all methods defined by this type
+            foreach (var m in meths) {
+                CodeRecord rec;
+                if (!records.TryGetValue (m.FullName, out rec)) {
+                    Log("adding matched method {0}",m.FullName);
+                    rec = new CodeRecord () { 
+                        ClassName = m.DeclaringType.CSharpName,
+                        Assembly = m.DeclaringType.Assembly.GetName().FullName,
+                        Name = m.Name,
+                        FullMethodName = m.FullName,
+                        Lines = new List<int>( m.LineNumbers ),
+                        SourceFile = m.SourceFile,
+                    };
+                    
+                    if (!bps.ContainsKey (m.FullName)) {
+                        bps [m.FullName] = new List<BreakPoint> ();
+                        // add a break on each line
+                        Log("adding {0} breakpoints", m.Locations.Count);
+                        foreach (var l in m.Locations) {
+                            var bp = VirtualMachine.CreateBreakpointRequest (l);
+                            var b = new BreakPoint () { Location = l, Record = rec, Request = bp };
+                            bps [m.FullName].Add (b);
+                            rbps [bp] = b;
+                            bp.Enabled = true;
+                        }
+                    }
+                    
+                    records.Add (m.FullName, rec);
+                    DataStore.RegisterMethod (rec);
+                } 
+            }
+
+
+
+        }
+
         public bool CheckTypeLoad (Event evt)
         {
             var tl = evt as TypeLoadEvent;
             if (tl != null) {
-                //Console.Error.WriteLine("tlr = "+ tl.Type.FullName);
+                Log("TypeLoadEvent {0}", tl.Type.FullName);
                 foreach (var rx in typeMatchers) {
                     if (rx.IsMatch (tl.Type.FullName)) {
-                       
-                        var meths = tl.Type.GetMethods ();
-                        // make a record for all methods defined by this type
-                        foreach (var m in meths) {
-                            CodeRecord rec;
-                            if (!records.TryGetValue (m.FullName, out rec)) {
-                                //Console.Error.WriteLine("adding {0}",m.FullName);
-                                rec = new CodeRecord () { 
-										ClassName = m.DeclaringType.CSharpName,
-                                        Assembly = m.DeclaringType.Assembly.GetName().FullName,
-										Name = m.Name,
-										FullMethodName = m.FullName,
-										Lines = new List<int>( m.LineNumbers ),
-										SourceFile = m.SourceFile,
-									};
-
-                                if (!bps.ContainsKey (m.FullName)) {
-                                    bps [m.FullName] = new List<BreakPoint> ();
-                                    // add a break on each line
-                                    foreach (var l in m.Locations) {
-                                        var bp = VirtualMachine.CreateBreakpointRequest (l);
-                                        var b = new BreakPoint () { Location = l, Record = rec, Request = bp };
-                                        bps [m.FullName].Add (b);
-                                        rbps [bp] = b;
-                                        bp.Enabled = true;
-                                    }
-                                }
-
-                                records.Add (m.FullName, rec);
-                                DataStore.RegisterMethod (rec);
-                            } 
-                        }
-
-
+                        MarkType( tl.Type );
                     }
                 }
             }
             return tl != null;
+        }
+
+        public bool CheckAssemblyLoad( Event evt )
+        {
+            var al = evt as AssemblyLoadEvent;
+            if ( al != null ) {
+                MarkAssembly( al.Assembly );
+                return true;
+            }
+            return false;
         }
 
         public bool CheckMethodRequests (Event evt)
@@ -99,7 +194,7 @@ namespace XR.Mono.Cover
             var met = evt as MethodEntryEvent;
             if (met != null) {
                 CodeRecord rec = null;
-                //Console.Error.WriteLine( met.Method.FullName );
+                Log( "call {0}", met.Method.FullName );
                 if (records.TryGetValue (met.Method.FullName, out rec)) {
                     rec.CallCount++;
                     //if (rec.Lines.Count > 0) 
@@ -117,7 +212,14 @@ namespace XR.Mono.Cover
                 BreakPoint bp = null;
                 if (rbps.TryGetValue (bpe.Request as BreakpointEventRequest, out bp)) {
                     CodeRecord rec = bp.Record;
-                    rec.Hit (bp.Location.LineNumber);
+                    lock ( DataStore )
+                    {
+                        rec.Hit (bp.Location.LineNumber);
+                    
+                        if ( bp.Location.LineNumber == bp.Record.Lines.FirstOrDefault() ) {
+                            rec.CallCount++;
+                        }
+                    }
 
                 }
             }
@@ -135,8 +237,8 @@ namespace XR.Mono.Cover
 
             try {
 
-                var b = VirtualMachine.CreateMethodEntryRequest ();
-                b.Enable ();
+                //var b = VirtualMachine.CreateMethodEntryRequest ();
+                //b.Enable ();
 
                 Resume ();
 
@@ -147,7 +249,10 @@ namespace XR.Mono.Cover
                         if (CheckBreakPointRequest (e))
                             continue;
 
-                        if (CheckMethodRequests (e))
+                        //if (CheckMethodRequests (e))
+                        //    continue;
+
+                        if (CheckAssemblyLoad(e))
                             continue;
 
                         if (CheckTypeLoad (e))
@@ -167,26 +272,38 @@ namespace XR.Mono.Cover
                     if (VirtualMachine.TargetProcess.HasExited)
                         break;
                 } while ( true );
+            } catch (VMDisconnectedException) {
+                Log ( "vm disconnected" );
             } catch (Exception ex) {
+                Log ( "{0}", ex );
                 if (File.Exists ("covhost.error"))
                     File.Delete ("covhost.error");
                 using (var f = new StreamWriter("covhost.error")) {
                     f.Write (ex.ToString ());
                 }
             } finally {
+
+                if ( !VirtualMachine.Process.HasExited )
+                    VirtualMachine.Process.Kill();
+
+                Log("saving data");
+
                 SaveData ();
 
-                DataStore.Close ();
             }
         }
 
         public void SaveData ()
         {
             // record stats
-            foreach (var rec in records.Values) {
-                DataStore.RegisterCalls (rec);
-                DataStore.RegisterHits (rec);
+            lock ( DataStore ){
+                foreach (var rec in records.Values) {
+                    Log ("saving record {0}", rec.FullMethodName );
+                    DataStore.RegisterCalls (rec);
+                    DataStore.RegisterHits (rec);
+                }
             }
+            Log("save complete");
         }
 
         public void Resume ()
@@ -220,7 +337,7 @@ namespace XR.Mono.Cover
                     if (r.Lines.Count > 0) {
                         f.WriteLine (r);
                         foreach (var l in r.Lines.Distinct()) {
-                            var hits = (from x in r.LineHits where x == l select x).Count ();
+                            var hits = r.GetHits(l);
                             f.WriteLine ("{0}:{1:0000} {2}", r.SourceFile, l, hits);
                         }
                     }

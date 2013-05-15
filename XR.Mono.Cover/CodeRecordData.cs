@@ -70,9 +70,7 @@ namespace XR.Mono.Cover
                                 var l = Convert.ToInt32( lsth["line"] );
                                 var hc = Convert.ToInt32( lsth["hits"] );
                                 rec.Lines.Add(l);
-                                for ( int i = 0; i < hc; i++ ){
-                                    rec.LineHits.Add(l);
-                                }
+                                rec.SetHits( l, hc );
                             }
                         }
 

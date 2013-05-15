@@ -20,9 +20,12 @@ namespace XR.Baboon
 
         public void RenderCoverage (SourceBuffer buf, CodeRecord rec)
         {
-            foreach (var hit in rec.LineHits) {
-                var hittag = rec.GetHits (hit) == 1 ? "visited_once" : "visited_more";
-                buf.ApplyTag (hittag, buf.GetIterAtLine (hit - 1), buf.GetIterAtLine (hit));
+            foreach ( var line in rec.Lines ){
+                var hits = rec.GetHits(line);
+                if ( hits > 0 ){
+                    var hittag = hits == 1 ? "visited_once" : "visited_more";
+                    buf.ApplyTag (hittag, buf.GetIterAtLine (line - 1), buf.GetIterAtLine (line));
+                }
             }
         }
 
@@ -119,7 +122,7 @@ namespace XR.Baboon
             foreach (var rec in recs) {
                 RenderCoverage (buf, rec);
                 total_lines += rec.Lines.Count;
-                covered_lines += rec.LineHits.Distinct ().Count ();
+                covered_lines += rec.GetHits();
             }
 
             double cov = (1.0 * covered_lines) / total_lines;
