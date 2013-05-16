@@ -1,0 +1,3 @@
+#!/bin/bash
+
+pmono mono cov-gtk.exe "$@"

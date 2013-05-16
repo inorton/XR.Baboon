@@ -9,8 +9,11 @@ namespace XR.Baboon
         public SourcePage ()
         {
             this.Build ();
-            if (this.header == null)
-                throw new NullReferenceException ("header");
+            if (this.header == null) {
+                this.header = new SourceHeaderBlock() {
+                    // is stetic broken if we get here?
+                };
+            }
         }
 
         public ScrolledWindow Window {
