@@ -45,6 +45,8 @@ namespace XR.Mono.Cover
             }
         }
 
+        public static CoverHost Singleton { get; private set;}
+
         public CoverHost (params string[] args)
         {
             VirtualMachine = VirtualMachineManager.Launch (args);
@@ -54,7 +56,7 @@ namespace XR.Mono.Cover
 				EventType.AssemblyLoad,
                 EventType.TypeLoad
             );
-
+            Singleton = this;
         }
 
         Dictionary<string,List<BreakPoint>> bps = new Dictionary<string, List<BreakPoint>> ();
@@ -228,17 +230,14 @@ namespace XR.Mono.Cover
 
         public void Cover (params string[] typeMatchPatterns)
         {
-
-
             foreach (var t in typeMatchPatterns) {
                 var r = new Regex (t);
                 typeMatchers.Add (r);
             }
 
             try {
-
-                //var b = VirtualMachine.CreateMethodEntryRequest ();
-                //b.Enable ();
+                var b = VirtualMachine.CreateAssemblyLoadRequest();
+                b.Enable();
 
                 Resume ();
 
@@ -297,11 +296,7 @@ namespace XR.Mono.Cover
         {
             // record stats
             lock ( DataStore ){
-                foreach (var rec in records.Values) {
-                    Log ("saving record {0}", rec.FullMethodName );
-                    DataStore.RegisterCalls (rec);
-                    DataStore.RegisterHits (rec);
-                }
+                DataStore.RegisterHits( records.Values, false );
             }
             Log("save complete");
         }

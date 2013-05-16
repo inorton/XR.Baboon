@@ -41,7 +41,9 @@ namespace XR.Mono.Cover
             var rv = new List<CodeRecord>();
 
             // load code points
+            using ( var tx = con.BeginTransaction() )
             using ( var cmd = new SqliteCommand( con ) ){
+                cmd.Transaction = tx;
                 cmd.CommandText = @"SELECT fullname, assembly, sourcefile, classname, name FROM methods";
                 using ( var sth = cmd.ExecuteReader() ) {
                     while ( sth.HasRows && sth.Read() ){
@@ -77,49 +79,89 @@ namespace XR.Mono.Cover
                         rv.Add(rec);
                     }
                 }
+                tx.Commit();
             }
 
             return rv;
         }
 
-        public void RegisterMethod( CodeRecord newmethod )
+        public void RegisterMethod(CodeRecord m ){
+            RegisterMethods( new CodeRecord[] { m } );
+        }
+
+        public void RegisterMethods( IEnumerable<CodeRecord> methods )
         {
+            using ( var tx = con.BeginTransaction() )
             using ( var cmd = new SqliteCommand( con ) ){
+                cmd.Transaction = tx;
                 cmd.CommandText = @"REPLACE INTO methods ( fullname, assembly, sourcefile, classname, name ) 
                     VALUES ( :FULLNAME, :ASSEMBLY, :SOURCEFILE, :CLASSNAME, :METHNAME )";
-                cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME", newmethod.FullMethodName ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY", newmethod.Assembly ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE", newmethod.SourceFile ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME", newmethod.ClassName ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":METHNAME", newmethod.Name ) );
-                cmd.ExecuteNonQuery();
-            }
-        }
+                cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":METHNAME" ) );
 
-        public void RegisterCalls( CodeRecord method )
-        {
-            using ( var cmd = new SqliteCommand( con ) ){
-                cmd.CommandText = @"REPLACE INTO calls ( fullname, assembly, hits ) 
-                    VALUES ( :FULLNAME, :ASSEMBLY, :HITS )";
-                cmd.Parameters.Add( new SqliteParameter( ":FULLNAME", method.FullMethodName ) );
-                cmd.Parameters.Add( new SqliteParameter( ":ASSEMBLY", method.Assembly ) );
-                cmd.Parameters.Add( new SqliteParameter( ":HITS", method.CallCount ) );
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void RegisterHits( CodeRecord method )
-        {
-            foreach ( var line in method.Lines.Distinct() ) {
-            using ( var cmd = new SqliteCommand( con ) ){
-                    cmd.CommandText = @"REPLACE INTO lines ( fullname, assembly, line, hits ) 
-                        VALUES ( :FULLNAME, :ASSEMBLY, :LINE, :HITS )";
-                    cmd.Parameters.Add( new SqliteParameter( ":FULLNAME", method.FullMethodName ) );
-                    cmd.Parameters.Add( new SqliteParameter( ":ASSEMBLY", method.Assembly ) );
-                    cmd.Parameters.Add( new SqliteParameter( ":LINE", line ) );
-                    cmd.Parameters.Add( new SqliteParameter( ":HITS", method.GetHits( line) ) );
+                foreach ( var newmethod in methods ) {
+                    cmd.Parameters[":FULLNAME"].Value = newmethod.FullMethodName;
+                    cmd.Parameters[":ASSEMBLY"].Value =  newmethod.Assembly;
+                    cmd.Parameters[":SOURCEFILE"].Value = newmethod.SourceFile;
+                    cmd.Parameters[":CLASSNAME"].Value = newmethod.ClassName;
+                    cmd.Parameters[":METHNAME"].Value = newmethod.Name;
                     cmd.ExecuteNonQuery();
                 }
+                tx.Commit();
+            }
+
+            RegisterHits( methods, true);
+
+        }
+
+
+        public void RegisterHits( IEnumerable<CodeRecord> methods, bool zerohits )
+        {
+            using ( var tx = con.BeginTransaction() )
+            using ( var chits = new SqliteCommand( con ) )
+            using ( var ccalls = new SqliteCommand( con ) ){
+                chits.Transaction = tx;
+                chits.CommandText = @"REPLACE INTO lines ( fullname, assembly, line, hits ) 
+                        VALUES ( :FULLNAME, :ASSEMBLY, :LINE, :HITS )";
+                chits.Parameters.Add( new SqliteParameter( ":FULLNAME" ) );
+                chits.Parameters.Add( new SqliteParameter( ":ASSEMBLY" ) );
+                chits.Parameters.Add( new SqliteParameter( ":LINE" ) );
+                chits.Parameters.Add( new SqliteParameter( ":HITS" ) );
+
+
+                ccalls.Transaction = tx;
+                ccalls.CommandText = @"REPLACE INTO calls ( fullname, assembly, hits ) 
+                    VALUES ( :FULLNAME, :ASSEMBLY, :HITS )";
+                ccalls.Parameters.Add( new SqliteParameter( ":FULLNAME" ) );
+                ccalls.Parameters.Add( new SqliteParameter( ":ASSEMBLY" ) );
+                ccalls.Parameters.Add( new SqliteParameter( ":HITS" ) );
+                
+                foreach ( var method in methods )
+                {
+                    CoverHost.Singleton.Log("saving {0}", method.FullMethodName );
+                    ccalls.Parameters[":FULLNAME"].Value = method.FullMethodName;
+                    ccalls.Parameters[":ASSEMBLY"].Value =  method.Assembly;
+                    ccalls.Parameters[":HITS"].Value = method.CallCount;
+                    ccalls.ExecuteNonQuery();
+
+                    foreach ( var line in method.Lines.Distinct() )
+                    {
+                        var hits = method.GetHits(line);
+                        
+                        if ( hits > 0 || zerohits ){
+                            chits.Parameters[":FULLNAME"].Value = method.FullMethodName;
+                            chits.Parameters[":ASSEMBLY"].Value = method.Assembly;
+                            chits.Parameters[":LINE"].Value = line;
+                            chits.Parameters[":HITS"].Value = hits;
+                            chits.ExecuteNonQuery();
+                        }
+                    }
+                }
+            
+                tx.Commit();
             }
         }
 
