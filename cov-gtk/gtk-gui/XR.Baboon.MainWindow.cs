@@ -28,7 +28,7 @@ namespace XR.Baboon
 			this.UIManager.InsertActionGroup (w1, 0);
 			this.AddAccelGroup (this.UIManager.AccelGroup);
 			this.Name = "XR.Baboon.MainWindow";
-			this.Title = global::Mono.Unix.Catalog.GetString ("MainWindow");
+			this.Title = global::Mono.Unix.Catalog.GetString ("XR Baboon!");
 			this.WindowPosition = ((global::Gtk.WindowPosition)(4));
 			this.DefaultWidth = 700;
 			this.DefaultHeight = 440;

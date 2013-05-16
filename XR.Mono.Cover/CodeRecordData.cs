@@ -2,6 +2,7 @@ using System;
 using Mono.Data.Sqlite;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 
 
 namespace XR.Mono.Cover
@@ -71,7 +72,7 @@ namespace XR.Mono.Cover
                             while ( lsth.HasRows && lsth.Read() ) {
                                 var l = Convert.ToInt32( lsth["line"] );
                                 var hc = Convert.ToInt32( lsth["hits"] );
-                                rec.Lines.Add(l);
+                                rec.AddLines(l);
                                 rec.SetHits( l, hc );
                             }
                         }
@@ -89,37 +90,53 @@ namespace XR.Mono.Cover
             RegisterMethods( new CodeRecord[] { m } );
         }
 
-        public void RegisterMethods( IEnumerable<CodeRecord> methods )
+        object reglock = new object();
+        int regcount = 0;
+
+        public void RegisterMethods( IEnumerable<CodeRecord> methodslist )
         {
-            using ( var tx = con.BeginTransaction() )
-            using ( var cmd = new SqliteCommand( con ) ){
-                cmd.Transaction = tx;
-                cmd.CommandText = @"REPLACE INTO methods ( fullname, assembly, sourcefile, classname, name ) 
+            lock (reglock) regcount++;
+
+            while ( regcount > 2 ) Thread.Sleep(40);
+
+            ThreadPool.QueueUserWorkItem( (x) => {
+                var methods = x as IEnumerable<CodeRecord>;
+                using ( var tx = con.BeginTransaction() )
+                using ( var cmd = new SqliteCommand( con ) ){
+                    cmd.Transaction = tx;
+                    cmd.CommandText = @"REPLACE INTO methods ( fullname, assembly, sourcefile, classname, name ) 
                     VALUES ( :FULLNAME, :ASSEMBLY, :SOURCEFILE, :CLASSNAME, :METHNAME )";
-                cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME" ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY" ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE" ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME" ) );
-                cmd.Parameters.Add( new SqliteParameter(  ":METHNAME" ) );
+                    cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME" ) );
+                    cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY" ) );
+                    cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE" ) );
+                    cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME" ) );
+                    cmd.Parameters.Add( new SqliteParameter(  ":METHNAME" ) );
 
-                foreach ( var newmethod in methods ) {
-                    cmd.Parameters[":FULLNAME"].Value = newmethod.FullMethodName;
-                    cmd.Parameters[":ASSEMBLY"].Value =  newmethod.Assembly;
-                    cmd.Parameters[":SOURCEFILE"].Value = newmethod.SourceFile;
-                    cmd.Parameters[":CLASSNAME"].Value = newmethod.ClassName;
-                    cmd.Parameters[":METHNAME"].Value = newmethod.Name;
-                    cmd.ExecuteNonQuery();
+                    foreach ( var newmethod in methods ) {
+                        if ( newmethod.Saved ) continue;
+
+                        cmd.Parameters[":FULLNAME"].Value = newmethod.FullMethodName;
+                        cmd.Parameters[":ASSEMBLY"].Value =  newmethod.Assembly;
+                        cmd.Parameters[":SOURCEFILE"].Value = newmethod.SourceFile;
+                        cmd.Parameters[":CLASSNAME"].Value = newmethod.ClassName;
+                        cmd.Parameters[":METHNAME"].Value = newmethod.Name;
+                        cmd.ExecuteNonQuery();
+                    }
+                    //tx.Commit();
                 }
-                tx.Commit();
-            }
+                RegisterHits( methods, true);
+                lock (reglock)
+                    regcount--;
 
-            RegisterHits( methods, true);
+            }, methodslist );
 
         }
 
+        static object dbLock = new object();
 
         public void RegisterHits( IEnumerable<CodeRecord> methods, bool zerohits )
         {
+            lock (dbLock)
             using ( var tx = con.BeginTransaction() )
             using ( var chits = new SqliteCommand( con ) )
             using ( var ccalls = new SqliteCommand( con ) ){
@@ -141,13 +158,14 @@ namespace XR.Mono.Cover
                 
                 foreach ( var method in methods )
                 {
+                    if ( method.Saved ) continue;
                     CoverHost.Singleton.Log("saving {0}", method.FullMethodName );
                     ccalls.Parameters[":FULLNAME"].Value = method.FullMethodName;
                     ccalls.Parameters[":ASSEMBLY"].Value =  method.Assembly;
                     ccalls.Parameters[":HITS"].Value = method.CallCount;
                     ccalls.ExecuteNonQuery();
 
-                    foreach ( var line in method.Lines.Distinct() )
+                    foreach ( var line in method.GetLines() )
                     {
                         var hits = method.GetHits(line);
                         
@@ -161,7 +179,7 @@ namespace XR.Mono.Cover
                     }
                 }
             
-                tx.Commit();
+                //tx.Commit();
             }
         }
 

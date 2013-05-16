@@ -20,7 +20,7 @@ namespace XR.Baboon
 
         public void RenderCoverage (SourceBuffer buf, CodeRecord rec)
         {
-            foreach ( var line in rec.Lines ){
+            foreach ( var line in rec.GetLines() ){
                 var hits = rec.GetHits(line);
                 if ( hits > 0 ){
                     var hittag = hits == 1 ? "visited_once" : "visited_more";
@@ -121,7 +121,7 @@ namespace XR.Baboon
             buf.Text = File.ReadAllText (filename);
             foreach (var rec in recs) {
                 RenderCoverage (buf, rec);
-                total_lines += rec.Lines.Count;
+                total_lines += rec.GetLines().Length;
                 covered_lines += rec.GetHits();
             }
 
@@ -174,7 +174,7 @@ namespace XR.Baboon
             records = code;
             var recs = new Dictionary<string, List<CodeRecord>> ();
             foreach (var rec in code) {
-                if (rec.Lines.Count == 0)
+                if (rec.GetLines().Length == 0)
                     continue;
                 if (!recs.ContainsKey (rec.ClassName))
                     recs [rec.ClassName] = new List<CodeRecord> ();
@@ -215,7 +215,7 @@ namespace XR.Baboon
                         // assuming it is open, scroll to the thing we clicked
                         if (sourceviews.TryGetValue (localfile, out sv)) {
                             var tm = new TextMark (rec.FullMethodName, true);
-                            var iter = sv.Buffer.GetIterAtLine (rec.Lines [0] - 1);
+                            var iter = sv.Buffer.GetIterAtLine (rec.GetLines()[0] - 1);
 
                             sv.Buffer.AddMark (tm, iter);
 

@@ -22,7 +22,7 @@ namespace XR.Baboon
                 return a.Name.CompareTo( b.Name );
             } );
 			foreach (var r in records) {
-				total_lines += r.Lines.Distinct ().Count ();
+				total_lines += r.GetLines().Length;
                 covered_lines += r.GetHits();
 				TStore.AppendValues (iter, r);
 			}

@@ -8,7 +8,7 @@ namespace XR.Mono.Cover
 
     public class CodeRecord
     {
-        public List<int> Lines { get; set; }
+        List<int> Lines { get; set; }
 
         public string SourceFile { get; set; }
         public string Assembly { get; set; }
@@ -17,6 +17,8 @@ namespace XR.Mono.Cover
         public string FullMethodName { get; set; }
         public int CallCount { get; set; }
 
+        public bool Saved{ get; set; }
+
         public CodeRecord ()
         {
             Lines = new List<int> ();
@@ -24,8 +26,16 @@ namespace XR.Mono.Cover
 
         Dictionary<int,int> hitCounts = new Dictionary<int, int>();
 
+        public void AddLines( params int[] lines )
+        {
+            Saved = false;
+            lock ( Lines )
+                Lines.AddRange( lines );
+        }
+
         public void Hit (int line)
         { 
+            Saved = false;
             if ( !hitCounts.ContainsKey( line ) )
                 hitCounts[line] = 0;
             hitCounts[line]++;
@@ -64,6 +74,16 @@ namespace XR.Mono.Cover
  return String.Format ("{0}:{1},Calls={2},Coverage={3:00.0}%,{4}", ClassName, Name, CallCount, 100 * Coverage, FullMethodName);
         }
 
+        public int[] GetLines()
+        {
+            lock ( Lines )
+                return Lines.Distinct().ToArray();
+        }
+
+        public int GetFirstLine()
+        {
+            return Lines.FirstOrDefault();
+        }
     }
 
 }

@@ -27,7 +27,7 @@
       </action>
     </action-group>
     <property name="MemberName" />
-    <property name="Title" translatable="yes">MainWindow</property>
+    <property name="Title" translatable="yes">XR Baboon!</property>
     <property name="WindowPosition">CenterOnParent</property>
     <property name="DefaultWidth">700</property>
     <property name="DefaultHeight">440</property>

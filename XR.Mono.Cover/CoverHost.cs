@@ -4,6 +4,7 @@ using Mono.Debugger.Soft;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Threading;
 
 namespace XR.Mono.Cover
 {
@@ -135,9 +136,9 @@ namespace XR.Mono.Cover
                         Assembly = m.DeclaringType.Assembly.GetName().FullName,
                         Name = m.Name,
                         FullMethodName = m.FullName,
-                        Lines = new List<int>( m.LineNumbers ),
                         SourceFile = m.SourceFile,
                     };
+                    rec.AddLines( m.LineNumbers.ToArray() );
                     
                     if (!bps.ContainsKey (m.FullName)) {
                         bps [m.FullName] = new List<BreakPoint> ();
@@ -218,7 +219,7 @@ namespace XR.Mono.Cover
                     {
                         rec.Hit (bp.Location.LineNumber);
                     
-                        if ( bp.Location.LineNumber == bp.Record.Lines.FirstOrDefault() ) {
+                        if ( bp.Location.LineNumber == bp.Record.GetFirstLine() ) {
                             rec.CallCount++;
                         }
                     }
@@ -287,18 +288,38 @@ namespace XR.Mono.Cover
 
                 Log("saving data");
 
-                SaveData ();
+                SaveData ( true );
 
             }
         }
 
-        public void SaveData ()
+        
+        public void SaveData ( )
         {
+            SaveData(false);
+        }
+
+        public void SaveData ( bool wait )
+        {
+            bool done = false;
+            List<CodeRecord> recs = new List<CodeRecord>();
             // record stats
             lock ( DataStore ){
-                DataStore.RegisterHits( records.Values, false );
+                recs.AddRange( records.Values );
             }
-            Log("save complete");
+
+            ThreadPool.QueueUserWorkItem( (x) => {
+                var list = recs as List<CodeRecord>;
+                Log ("saving records in background");
+                DataStore.RegisterHits( list, false );
+                Log("save complete");
+                done = true;
+            }, recs );
+
+            if ( wait ) {
+                while ( !done ) Thread.Sleep(1000);
+            }
+
         }
 
         public void Resume ()
@@ -329,9 +350,10 @@ namespace XR.Mono.Cover
                 });
 
                 foreach (var r in rv) {
-                    if (r.Lines.Count > 0) {
+                    var lines = r.GetLines();
+                    if (lines.Length > 0) {
                         f.WriteLine (r);
-                        foreach (var l in r.Lines.Distinct()) {
+                        foreach (var l in lines) {
                             var hits = r.GetHits(l);
                             f.WriteLine ("{0}:{1:0000} {2}", r.SourceFile, l, hits);
                         }
