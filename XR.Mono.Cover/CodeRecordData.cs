@@ -90,46 +90,34 @@ namespace XR.Mono.Cover
             RegisterMethods( new CodeRecord[] { m } );
         }
 
-        object reglock = new object();
-        int regcount = 0;
+ 
 
-        public void RegisterMethods( IEnumerable<CodeRecord> methodslist )
+        public void RegisterMethods( IEnumerable<CodeRecord> methods )
         {
-            lock (reglock) regcount++;
-
-            while ( regcount > 2 ) Thread.Sleep(40);
-
-            ThreadPool.QueueUserWorkItem( (x) => {
-                var methods = x as IEnumerable<CodeRecord>;
-                using ( var tx = con.BeginTransaction() )
-                using ( var cmd = new SqliteCommand( con ) ){
-                    cmd.Transaction = tx;
-                    cmd.CommandText = @"REPLACE INTO methods ( fullname, assembly, sourcefile, classname, name ) 
+            using ( var tx = con.BeginTransaction() )
+            using ( var cmd = new SqliteCommand( con ) ){
+                cmd.Transaction = tx;
+                cmd.CommandText = @"REPLACE INTO methods ( fullname, assembly, sourcefile, classname, name ) 
                     VALUES ( :FULLNAME, :ASSEMBLY, :SOURCEFILE, :CLASSNAME, :METHNAME )";
-                    cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME" ) );
-                    cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY" ) );
-                    cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE" ) );
-                    cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME" ) );
-                    cmd.Parameters.Add( new SqliteParameter(  ":METHNAME" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME" ) );
+                cmd.Parameters.Add( new SqliteParameter(  ":METHNAME" ) );
 
-                    foreach ( var newmethod in methods ) {
-                        if ( newmethod.Saved ) continue;
+                foreach ( var newmethod in methods ) {
+                    if ( newmethod.Saved ) continue;
 
-                        cmd.Parameters[":FULLNAME"].Value = newmethod.FullMethodName;
-                        cmd.Parameters[":ASSEMBLY"].Value =  newmethod.Assembly;
-                        cmd.Parameters[":SOURCEFILE"].Value = newmethod.SourceFile;
-                        cmd.Parameters[":CLASSNAME"].Value = newmethod.ClassName;
-                        cmd.Parameters[":METHNAME"].Value = newmethod.Name;
-                        cmd.ExecuteNonQuery();
-                    }
-                    //tx.Commit();
+                    cmd.Parameters[":FULLNAME"].Value = newmethod.FullMethodName;
+                    cmd.Parameters[":ASSEMBLY"].Value =  newmethod.Assembly;
+                    cmd.Parameters[":SOURCEFILE"].Value = newmethod.SourceFile;
+                    cmd.Parameters[":CLASSNAME"].Value = newmethod.ClassName;
+                    cmd.Parameters[":METHNAME"].Value = newmethod.Name;
+                    cmd.ExecuteNonQuery();
                 }
-                RegisterHits( methods, true);
-                lock (reglock)
-                    regcount--;
-
-            }, methodslist );
-
+                    
+                tx.Commit();
+            }
         }
 
         static object dbLock = new object();
@@ -178,8 +166,8 @@ namespace XR.Mono.Cover
                         }
                     }
                 }
-            
-                //tx.Commit();
+                tx.Commit();
+                CoverHost.Singleton.Log("saved");
             }
         }
 

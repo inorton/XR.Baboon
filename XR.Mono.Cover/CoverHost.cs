@@ -52,6 +52,7 @@ namespace XR.Mono.Cover
         {
             VirtualMachine = VirtualMachineManager.Launch (args);
             VirtualMachine.EnableEvents (
+                EventType.VMStart,
 				EventType.VMDeath,
                 EventType.VMDisconnect,
 				EventType.AssemblyLoad,
@@ -269,8 +270,10 @@ namespace XR.Mono.Cover
 
                         }
                     }
-                    if (VirtualMachine.TargetProcess.HasExited)
+                    if (VirtualMachine.TargetProcess.HasExited) {
+                        Log ( "debugee has exited" );
                         break;
+                    }
                 } while ( true );
             } catch (VMDisconnectedException) {
                 Log ( "vm disconnected" );
@@ -290,6 +293,9 @@ namespace XR.Mono.Cover
 
                 SaveData ( true );
 
+                Log("quitting");
+                LogFile.Flush();
+                LogFile.Close();
             }
         }
 
@@ -311,7 +317,7 @@ namespace XR.Mono.Cover
             ThreadPool.QueueUserWorkItem( (x) => {
                 var list = recs as List<CodeRecord>;
                 Log ("saving records in background");
-                DataStore.RegisterHits( list, false );
+                DataStore.RegisterHits( list, true );
                 Log("save complete");
                 done = true;
             }, recs );
