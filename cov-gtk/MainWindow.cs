@@ -94,8 +94,9 @@ namespace XR.Baboon
             var page = new SourcePage ();
 
             var sv = new SourceView (buf);
-            // sv.ScrollToIter (buf.GetIterAtLineOffset (22, 0), 1.1, false, 0.0, 0.0);
 
+            // sv.ScrollToIter (buf.GetIterAtLineOffset (22, 0), 1.1, false, 0.0, 0.0);
+            sv.HighlightCurrentLine = true;
             sv.Editable = false;
             sv.ShowLineNumbers = true;
 
@@ -218,8 +219,8 @@ namespace XR.Baboon
                             var iter = sv.Buffer.GetIterAtLine (rec.GetLines()[0] - 1);
 
                             sv.Buffer.AddMark (tm, iter);
-
                             sv.ScrollToMark (tm, 0.3, true, 0.2, 0.2);
+                            sv.ScrollMarkOnscreen( tm );
                             sv.Buffer.PlaceCursor (iter);
                         }
                     }

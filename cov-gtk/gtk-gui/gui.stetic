@@ -10,7 +10,7 @@
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <widget-library name="../../covtool/bin/cov-gtk.exe" internal="true" />
   </import>
-  <widget class="Gtk.Window" id="XR.Baboon.MainWindow" design-size="700 423">
+  <widget class="Gtk.Window" id="XR.Baboon.MainWindow" design-size="890 646">
     <action-group name="Default">
       <action id="openAction">
         <property name="Type">Action</property>
