@@ -30,6 +30,9 @@ one day if Mono.Debugger.Soft does, this will too.
 
 I'm only aiming at linux but this should work well on OSX and Windows ( if you install mono ).
 
+Like all good analysis tools, Baboon can test itself! See [here](https://raw.github.com/inorton/XR.Baboon/master/selftest.html) for some
+results.
+
 Building
 ---------
 

@@ -30,24 +30,24 @@ namespace covhtml {
             #line hidden
             
             #line 3 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
-            this.Write(" Code Coverage Report</title></head>\n<body>\n<h1>");
+            this.Write(" Code Coverage Report</title>\n<style>\nbody {\n  font-family: sans-serif;\n}\n\nth {\n  text-align: left;\n}\n</style>\n\n</head>\n<body>\n<h1>");
             
             #line default
             #line hidden
             
-            #line 5 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 16 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.ProjectName ));
             
             #line default
             #line hidden
             
-            #line 5 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 16 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</h1>\n<h2>Code Coverage</h2>\n<table>\n<tr><th>Detail</th><th>Value</th></tr>\n");
             
             #line default
             #line hidden
             
-            #line 9 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 20 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
 foreach ( var k in this.metadata.Keys ) {
   if ( !k.StartsWith("match:") ) {
@@ -56,37 +56,37 @@ foreach ( var k in this.metadata.Keys ) {
             #line default
             #line hidden
             
-            #line 13 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 24 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("  <tr><td>");
             
             #line default
             #line hidden
             
-            #line 13 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 24 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( k ));
             
             #line default
             #line hidden
             
-            #line 13 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 24 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td><td>");
             
             #line default
             #line hidden
             
-            #line 13 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 24 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( this.metadata[k] ));
             
             #line default
             #line hidden
             
-            #line 13 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 24 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td></tr>\n");
             
             #line default
             #line hidden
             
-            #line 14 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 25 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
   }
 }
@@ -95,13 +95,13 @@ foreach ( var k in this.metadata.Keys ) {
             #line default
             #line hidden
             
-            #line 18 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
-            this.Write("</table>\n\n<h2>Patterns</h2>\n<table>\n<tr><th>Pattern</th><th>Lines Matched</th><th colspan=\"2\">Lines Covered</th></tr>\n");
+            #line 29 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            this.Write("</table>\n\n<h2>Patterns</h2>\n<table>\n<tr><th style=\"width:3in\">Pattern</th><th>Lines Matched</th><th colspan=\"2\">Lines Covered</th></tr>\n");
             
             #line default
             #line hidden
             
-            #line 23 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 34 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
 foreach ( var k in this.metadata.Keys ) {
   if ( k.StartsWith("match:") ) {
@@ -120,61 +120,61 @@ foreach ( var k in this.metadata.Keys ) {
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("  <tr><td>");
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( patt ));
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td><td>");
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( lines ));
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td><td>");
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( hits ));
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td><td>");
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( pct ));
             
             #line default
             #line hidden
             
-            #line 37 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 48 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("%</td></tr>\n");
             
             #line default
             #line hidden
             
-            #line 38 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 49 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
   }
 }
@@ -183,13 +183,13 @@ foreach ( var k in this.metadata.Keys ) {
             #line default
             #line hidden
             
-            #line 42 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 53 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</table>\n\n<h2>Results</h2>\n<table>\n<tr><th></th><th>Calls</th><th>Lines</th><th>Hits</th><th>Coverage</th></tr>\n");
             
             #line default
             #line hidden
             
-            #line 47 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 58 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
 foreach ( var tname in GetTypes() ) {
 
@@ -197,37 +197,37 @@ foreach ( var tname in GetTypes() ) {
             #line default
             #line hidden
             
-            #line 50 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 61 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("<tr>\n<td colspan=\"4\"><b>");
             
             #line default
             #line hidden
             
-            #line 51 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 62 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( tname ));
             
             #line default
             #line hidden
             
-            #line 51 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 62 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</b></td>\n<td align=\"right\">");
             
             #line default
             #line hidden
             
-            #line 52 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 63 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( GetTypeCoverage(tname) ));
             
             #line default
             #line hidden
             
-            #line 52 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 63 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("%</td>\n</tr>\n");
             
             #line default
             #line hidden
             
-            #line 54 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 65 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
   foreach ( var m in GetMembers(tname) ) {
     var cov = GetCoverage(m);
@@ -237,97 +237,97 @@ foreach ( var tname in GetTypes() ) {
             #line default
             #line hidden
             
-            #line 59 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 70 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("<tr>\n<td>");
             
             #line default
             #line hidden
             
-            #line 60 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 71 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( m.FullMethodName ));
             
             #line default
             #line hidden
             
-            #line 60 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 71 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td>\n<td align=\"right\">");
             
             #line default
             #line hidden
             
-            #line 61 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 72 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( m.CallCount ));
             
             #line default
             #line hidden
             
-            #line 61 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 72 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td>\n<td align=\"right\">");
             
             #line default
             #line hidden
             
-            #line 62 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 73 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( m.GetLines().Length ));
             
             #line default
             #line hidden
             
-            #line 62 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 73 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td>\n<td align=\"right\">");
             
             #line default
             #line hidden
             
-            #line 63 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 74 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( m.GetHits() ));
             
             #line default
             #line hidden
             
-            #line 63 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 74 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</td>\n<td align=\"right\">");
             
             #line default
             #line hidden
             
-            #line 64 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 75 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( cov ));
             
             #line default
             #line hidden
             
-            #line 64 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 75 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("%</td>\n</tr>\n<tr>\n<td colspan=\"5\"> \n<table cellpadding=\"0\" cellspacing=\"0\" style=\"width:100%\">\n<tr>\n<td style='background:green; height:16px; width:");
             
             #line default
             #line hidden
             
-            #line 70 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 81 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( cov  ));
             
             #line default
             #line hidden
             
-            #line 70 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 81 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("%;'></td> \n<td style='background:red; height:16px; width:");
             
             #line default
             #line hidden
             
-            #line 71 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 82 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( (100 - cov) ));
             
             #line default
             #line hidden
             
-            #line 71 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 82 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("%;'></td>\n</tr>\n</table>\n</td></tr>\n \n");
             
             #line default
             #line hidden
             
-            #line 76 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 87 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
 
   }
 }
@@ -336,7 +336,7 @@ foreach ( var tname in GetTypes() ) {
             #line default
             #line hidden
             
-            #line 80 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
+            #line 91 "/home/inb/Projects/git/XR.Baboon/cov-html/ReportIndex.tt"
             this.Write("</body>\n</html>     \n     \n");
             
             #line default

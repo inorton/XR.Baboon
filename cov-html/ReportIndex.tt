@@ -1,6 +1,17 @@
 ﻿<#@ template language="C#v3.5" #>
 <html>
-<head><title><#= this.ProjectName #> Code Coverage Report</title></head>
+<head><title><#= this.ProjectName #> Code Coverage Report</title>
+<style>
+body {
+  font-family: sans-serif;
+}
+
+th {
+  text-align: left;
+}
+</style>
+
+</head>
 <body>
 <h1><#= this.ProjectName #></h1>
 <h2>Code Coverage</h2>
@@ -19,7 +30,7 @@ foreach ( var k in this.metadata.Keys ) {
 
 <h2>Patterns</h2>
 <table>
-<tr><th>Pattern</th><th>Lines Matched</th><th colspan="2">Lines Covered</th></tr>
+<tr><th style="width:3in">Pattern</th><th>Lines Matched</th><th colspan="2">Lines Covered</th></tr>
 <#
 foreach ( var k in this.metadata.Keys ) {
   if ( k.StartsWith("match:") ) {
