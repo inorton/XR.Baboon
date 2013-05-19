@@ -12,16 +12,17 @@ namespace UnitTests
         [SetUp]
         public void Init ()
         {
-            if (File.Exists ("testsubject.exe.covdb"))
-                File.Delete ("testsubject.exe.covdb");
+            if (File.Exists ("self.covcfg.covdb"))
+                File.Delete ("self.covcfg.covdb");
         }
 
         [Test()]
-        public void Cover ()
+        public void SelfCover ()
         {
+            Environment.SetEnvironmentVariable("BABOON_CFG", "testsubject.exe.covcfg" );
+            var h = CoverHostFactory.CreateHost ("self.exe.covdb", "covem.exe", "testsubject.exe");
 
-            var h = CoverHostFactory.CreateHost ("testsubject.exe.covdb", "testsubject.exe");
-            h.Cover ("^testsubject");
+            h.Cover ("^XR.Mono.Cover");
 
         }
     }

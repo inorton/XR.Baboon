@@ -119,6 +119,7 @@ of a type name like so:
             CoverHost.RenameBackupFile( cfgfile + ".covreport" );
 
             covertool = CoverHostFactory.CreateHost ( cfgfile  + ".covdb", program, args.ToArray() );
+            covertool.DataStore.SaveMeta( "config", cfgfile );
             debugee = covertool.VirtualMachine.Process;
             ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
             ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );

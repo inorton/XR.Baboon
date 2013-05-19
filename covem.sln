@@ -66,7 +66,7 @@ Global
 		{ED3D7A8F-65C4-4002-AC7D-207F1768CD4E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = cov-html\cov-html.csproj
+		StartupItem = covtool\covtool.csproj
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
 		$1.DirectoryNamespaceAssociation = None

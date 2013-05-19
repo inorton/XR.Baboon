@@ -20,7 +20,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>testsubject.exe.covcfg.covdb 'Test Subject'</Commandlineparameters>
+    <Commandlineparameters>testsubject.exe.covcfg.covdb 'Covem Self Test'</Commandlineparameters>
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
