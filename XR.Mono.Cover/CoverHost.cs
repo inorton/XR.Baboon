@@ -48,8 +48,11 @@ namespace XR.Mono.Cover
 
         public static CoverHost Singleton { get; private set;}
 
+        string[] cmdargs;
+
         public CoverHost (params string[] args)
         {
+            cmdargs = args;
             VirtualMachine = VirtualMachineManager.Launch (args);
             VirtualMachine.EnableEvents (
                 EventType.VMStart,
@@ -232,7 +235,12 @@ namespace XR.Mono.Cover
 
         public void Cover (params string[] typeMatchPatterns)
         {
-            foreach (var t in typeMatchPatterns) {
+            DataStore.SaveMeta("commandline", string.Join(" ", cmdargs));
+            DataStore.SaveMeta("started", DateTime.Now.ToString("s") );
+            for ( int i = 0; i < typeMatchPatterns.Length; i++ )
+            {
+                var t = typeMatchPatterns[i];
+                DataStore.SaveMeta( String.Format("match:{0:000}", i), t);
                 var r = new Regex (t);
                 typeMatchers.Add (r);
             }

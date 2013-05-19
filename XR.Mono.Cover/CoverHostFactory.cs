@@ -23,6 +23,9 @@ namespace XR.Mono.Cover
 
             var logfile = covfile + ".log";
             var log = new StreamWriter( logfile );
+            data.SaveMeta("logfile", logfile);
+            data.SaveMeta("dbfile", covfile);
+            data.SaveMeta("testmachine", Environment.MachineName );
 
             var rv = new CoverHost ( args.ToArray() ) { 
                 DataStore = data,

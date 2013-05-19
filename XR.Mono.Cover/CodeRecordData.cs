@@ -171,6 +171,39 @@ namespace XR.Mono.Cover
             }
         }
 
+        public void SaveMeta( string key, string val )
+        {
+            lock (dbLock ){
+                using ( var cmd = new SqliteCommand( con ) ) {
+                    cmd.CommandText = "REPLACE INTO meta ( item, val ) VALUES ( :ITEM, :VAL )";
+                    cmd.Parameters.Add( new SqliteParameter( ":ITEM",  key ) );
+                    cmd.Parameters.Add( new SqliteParameter( ":VAL",  val ) );
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public Dictionary<string,string> LoadMeta()
+        {
+            var rv = new Dictionary<string,string>();
+            lock ( dbLock ){
+                using ( var cmd = new SqliteCommand( con ) )
+                {
+                    cmd.CommandText = @"SELECT item, val FROM meta";
+                    using ( var sth = cmd.ExecuteReader() ) {
+                        while ( sth.HasRows && sth.Read() ){
+                            var k = Convert.ToString( sth["item"] );
+                            var v = Convert.ToString( sth["val"] );
+                            if ( !string.IsNullOrEmpty(k) ){
+                                rv[k] = v;
+                            }
+                        }
+                    }
+                }
+            }
+            return rv;
+        }
+
         void Tables ()
         {
             if (checkedDb)
@@ -184,6 +217,9 @@ namespace XR.Mono.Cover
 
             NonQuery( @"CREATE TABLE IF NOT EXISTS lines ( fullname TEXT, assembly TEXT, line INTEGER, hits INTEGER )" );
             NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS lines_idx ON lines ( fullname, assembly, line )" );
+
+            NonQuery( @"CREATE TABLE IF NOT EXISTS meta ( item TEXT, val TEXT )" );
+            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS meta_idx ON meta ( item )" );
 
 
             checkedDb = true;
