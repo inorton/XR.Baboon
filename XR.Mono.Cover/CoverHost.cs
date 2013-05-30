@@ -53,7 +53,7 @@ namespace XR.Mono.Cover
         public CoverHost (params string[] args)
         {
             cmdargs = args;
-            VirtualMachine = VirtualMachineManager.Launch (args);
+            VirtualMachine = VirtualMachineManager.Launch (args, new LaunchOptions() { AgentArgs = "suspend=y" } );
             VirtualMachine.EnableEvents (
                 EventType.VMStart,
 				EventType.VMDeath,
@@ -70,6 +70,15 @@ namespace XR.Mono.Cover
         HashSet <string> loadedTypes = new HashSet<string>();
         HashSet <string> loadedAssemblies = new HashSet<string>();
 
+        bool MatchType( Type type )
+        {
+            foreach ( var rx in typeMatchers )
+            {
+                if ( rx.IsMatch( type.FullName ) ) return true;
+            }
+            return false;
+        }
+
         void MarkAssembly( AssemblyMirror a )
         {
             var name = a.GetName().FullName;
@@ -85,12 +94,12 @@ namespace XR.Mono.Cover
                     loadedAssemblies.Add( name );
                     if ( asm != null ){
                         Log ("loaded {0}", afile);
-                        foreach ( var t in asm.GetTypes() ){
-                            foreach (var rx in typeMatchers) {
-                                if (rx.IsMatch (t.FullName)) {
-                                    Log ("matched type {0}", t.FullName);
-                                    MarkLoadedType( a, t );
-                                }
+                        foreach ( var t in asm.GetTypes() )
+                        {
+                            if ( MatchType( t ) ) 
+                            {
+                                Log ("matched type {0}", t.FullName);
+                                MarkLoadedType( a, t );
                             }
                         }
                     }

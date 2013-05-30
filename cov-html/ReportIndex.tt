@@ -17,6 +17,7 @@ th {
 <h2>Code Coverage</h2>
 <table>
 <tr><th>Detail</th><th>Value</th></tr>
+<tr><td>Generator</td><td><a href="https://github.com/inorton/XR.Baboon">XR.Baboon</a></td></tr>
 <#
 foreach ( var k in this.metadata.Keys ) {
   if ( !k.StartsWith("match:") ) {
