@@ -33,6 +33,8 @@ I'm only aiming at linux but this should work well on OSX and Windows ( if you i
 Like all good analysis tools, Baboon can test itself! See [here](https://raw.github.com/inorton/XR.Baboon/master/covtool/selftest.html) for some
 results.
 
+Baboon also includes a binary of nunit.framework.dll for it's tests.
+
 Building
 ---------
 

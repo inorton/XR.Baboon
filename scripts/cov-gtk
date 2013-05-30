@@ -1,0 +1,2 @@
+#!/bin/bash
+exec mono /usr/local/lib/baboon/cov-gtk.exe "$@"

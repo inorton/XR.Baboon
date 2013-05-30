@@ -3,11 +3,9 @@ XR_COV_CON=covtool/bin/Release/covtool.exe
 INSTDIR=/usr/local/lib/baboon
 BINDIR=/usr/local/bin
 
-all: 
+all:
 	git submodule update --init
 	xbuild /property:Configuration=Release 
-
-covem: covtool/bin/covem.exe
 	bash make_bundle
 
 clean:
@@ -18,6 +16,11 @@ clean:
 	rm -rf XR.Mono.Cover/obj
 	rm -rf XR.Mono.Cover/bin
 
-install: covem
+install:
 	install -d $(INSTDIR) $(BINDIR)
 	install -m 755 covem $(BINDIR)
+	install covtool/bin/XR.Mono.Cover.dll $(INSTDIR)
+	install covtool/bin/cov-gtk.exe $(INSTDIR)
+	install covtool/bin/cov-html.exe $(INSTDIR)
+	install scripts/cov-gtk $(BINDIR)
+	install scripts/cov-html $(BINDIR)

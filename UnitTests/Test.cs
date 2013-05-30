@@ -6,8 +6,8 @@ using XR.Mono.Cover;
 
 namespace UnitTests
 {
-    [TestFixture()]
-    public class Test
+    [TestFixture]
+    public class TestCoverage
     {
         [SetUp]
         public void Init ()
@@ -16,7 +16,7 @@ namespace UnitTests
                 File.Delete ("self.covcfg.covdb");
         }
 
-        [Test()]
+        [Test]
         public void SelfCover ()
         {
             Environment.SetEnvironmentVariable("BABOON_CFG", "testsubject.exe.covcfg" );

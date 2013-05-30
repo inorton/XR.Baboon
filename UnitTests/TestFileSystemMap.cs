@@ -6,10 +6,9 @@ using XR.Mono.Cover;
 
 namespace UnitTests
 {
-    [TestFixture()]
+    [TestFixture]
     public class TestFileSystemMap
     {
-        [Test]
         [TestCase("foo/bar/baz/moose.cs", "bob/bar/baz/moose.cs", 
                   Result = "/bar/baz/moose.cs")]
         [TestCase("wobble/foo/bar/baz/moose.cs", "bob/bar/baz/moose.cs", 
