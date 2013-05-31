@@ -27,7 +27,7 @@ namespace XR.Mono.Cover
 
         List<Regex> typeMatchers = new List<Regex> ();
 
-        //List<AssemblyMirror> logAssemblies = new List<AssemblyMirror> ();
+        List<string> assemblyMatchers = new List<string>();
 
         public CodeRecordData DataStore { get; set; }
 
@@ -81,8 +81,11 @@ namespace XR.Mono.Cover
 
         void MarkAssembly( AssemblyMirror a )
         {
-            var name = a.GetName().FullName;
+            var asmname = a.GetName();
+            var name = asmname.FullName;
             if ( loadedAssemblies.Contains( name ) ) return;
+            bool loadAll = false;
+            if ( assemblyMatchers.Contains( asmname.Name ) ) loadAll = true;
 
             var afile = a.Location;
             Log ("load assembly {0} from {1}", name, afile);
@@ -96,7 +99,7 @@ namespace XR.Mono.Cover
                         Log ("loaded {0}", afile);
                         foreach ( var t in asm.GetTypes() )
                         {
-                            if ( MatchType( t ) ) 
+                            if ( loadAll || MatchType( t ) ) 
                             {
                                 Log ("matched type {0}", t.FullName);
                                 MarkLoadedType( a, t );
@@ -242,6 +245,24 @@ namespace XR.Mono.Cover
             return bpe != null;
         }
 
+        public bool AddAssemblyMatcher( string pattern )
+        {
+            if ( pattern.StartsWith("assembly:") ){
+                var tmp = pattern.Split( new char[] {':'}, 2 );
+                if ( tmp.Length == 2 ) {
+                    var asmname = tmp[1];
+
+                    if ( !assemblyMatchers.Contains(asmname) ) {
+                        assemblyMatchers.Add( asmname );
+                        DataStore.SaveMeta( String.Format("match:{0:000}", assemblyMatchers.Count), pattern);
+                    }
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public void Cover (params string[] typeMatchPatterns)
         {
             DataStore.SaveMeta("commandline", string.Join(" ", cmdargs));
@@ -249,9 +270,12 @@ namespace XR.Mono.Cover
             for ( int i = 0; i < typeMatchPatterns.Length; i++ )
             {
                 var t = typeMatchPatterns[i];
-                DataStore.SaveMeta( String.Format("match:{0:000}", i), t);
-                var r = new Regex (t);
-                typeMatchers.Add (r);
+                if ( !AddAssemblyMatcher(t) ) 
+                {
+                    DataStore.SaveMeta( String.Format("match:{0:000}", i), t);
+                    var r = new Regex (t);
+                    typeMatchers.Add (r);
+                }
             }
 
             try {

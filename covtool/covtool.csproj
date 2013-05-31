@@ -36,6 +36,7 @@
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
+    <Commandlineparameters>testsubject.exe</Commandlineparameters>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
