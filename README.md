@@ -47,6 +47,13 @@ If you wish to make the bundled binary (not necessary but easier to deploy) do:
 
 Which should give you the 'covem' program (on linux anyway)
 
+Installing
+-----------
+You can use the included Makefile to install baboon under Linux. 
+
+Use `make install` to install without using make_bundle (see above).
+Use `make installbundle` for installing the bundled version.
+
 Running
 --------
 
