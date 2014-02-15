@@ -6,6 +6,8 @@ BINDIR=/usr/local/bin
 all:
 	git submodule update --init
 	xbuild /property:Configuration=Release 
+
+makebundle: all
 	bash make_bundle
 
 clean:
@@ -16,11 +18,17 @@ clean:
 	rm -rf XR.Mono.Cover/obj
 	rm -rf XR.Mono.Cover/bin
 
-install:
+install_generic:
 	install -d $(INSTDIR) $(BINDIR)
-	install -m 755 covem $(BINDIR)
 	install covtool/bin/XR.Mono.Cover.dll $(INSTDIR)
 	install covtool/bin/cov-gtk.exe $(INSTDIR)
 	install covtool/bin/cov-html.exe $(INSTDIR)
 	install scripts/cov-gtk $(BINDIR)
 	install scripts/cov-html $(BINDIR)
+
+installbundle: install_generic
+	install -m 755 covem $(BINDIR)
+
+install: install_generic
+	install covtool/bin/covem.exe $(INSTDIR)
+	install scripts/covem $(BINDIR)
