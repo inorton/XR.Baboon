@@ -19,16 +19,16 @@ clean:
 	rm -rf XR.Mono.Cover/bin
 
 install_generic:
-	install -d $(INSTDIR) $(BINDIR)
-	install covtool/bin/XR.Mono.Cover.dll $(INSTDIR)
-	install covtool/bin/cov-gtk.exe $(INSTDIR)
-	install covtool/bin/cov-html.exe $(INSTDIR)
-	install scripts/cov-gtk $(BINDIR)
-	install scripts/cov-html $(BINDIR)
+	install -d $(DESTDIR)$(INSTDIR) $(DESTDIR)$(BINDIR)
+	install covtool/bin/XR.Mono.Cover.dll $(DESTDIR)$(INSTDIR)
+	install covtool/bin/cov-gtk.exe $(DESTDIR)$(INSTDIR)
+	install covtool/bin/cov-html.exe $(DESTDIR)$(INSTDIR)
+	install scripts/cov-gtk $(DESTDIR)$(BINDIR)
+	install scripts/cov-html $(DESTDIR)$(BINDIR)
 
 installbundle: install_generic
-	install -m 755 covem $(BINDIR)
+	install -m 755 covem $(DESTDIR)$(BINDIR)
 
 install: install_generic
-	install covtool/bin/covem.exe $(INSTDIR)
-	install scripts/covem $(BINDIR)
+	install covtool/bin/covem.exe $(DESTDIR)$(INSTDIR)
+	install scripts/covem $(DESTDIR)$(BINDIR)
