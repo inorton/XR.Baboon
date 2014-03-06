@@ -27,7 +27,7 @@ XR.Mono.Cover is a code coverage tool for mono/.NET
 make
 
 %install
-%makeinstall
+make DESTDIR=%{?buildroot:%{buildroot}} install
 
 %post 
 %postun
