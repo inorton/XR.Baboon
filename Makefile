@@ -4,7 +4,6 @@ INSTDIR=/usr/local/lib/baboon
 BINDIR=/usr/local/bin
 
 all:
-	git submodule update --init
 	xbuild /property:Configuration=Release 
 
 makebundle: all
