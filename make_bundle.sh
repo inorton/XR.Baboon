@@ -9,7 +9,7 @@ SQLITE=/usr/lib/i386-linux-gnu/libsqlite3.a
 
 if [ ! -f $SQLITE ]
 then
-SQLITE=`pkg-config --ligs sqlite3`
+SQLITE=`pkg-config --libs sqlite3`
 fi
 
 CMD="cc -o covem -Wall `pkg-config --cflags mono-2` host.c \
