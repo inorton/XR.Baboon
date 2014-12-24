@@ -43,7 +43,7 @@ monodevelop.
 
 If you wish to make the bundled binary (not necessary but easier to deploy) do:
 
-`$ bash make_bundle`
+`$ bash make_bundle.sh`
 
 Which should give you the 'covem' program (on linux anyway)
 

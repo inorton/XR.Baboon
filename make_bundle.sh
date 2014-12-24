@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 START=`pwd`
 pushd covtool/bin/
