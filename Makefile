@@ -7,7 +7,7 @@ all:
 	xbuild /property:Configuration=Release 
 
 makebundle: all
-	bash make_bundle
+	bash make_bundle.sh
 
 clean:
 	rm -rf cov-gtk/obj
