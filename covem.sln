@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-html", "cov-html\cov-html.csproj", "{EBDDFD0F-DE67-46E2-B869-E8B0F9B90635}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-srchtml", "cov-srchtml\cov-srchtml.csproj", "{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -56,6 +58,12 @@ Global
 		{ED3D7A8F-65C4-4002-AC7D-207F1768CD4E}.Default|Any CPU.Build.0 = Debug|x86
 		{ED3D7A8F-65C4-4002-AC7D-207F1768CD4E}.Release|x86.ActiveCfg = Release|x86
 		{ED3D7A8F-65C4-4002-AC7D-207F1768CD4E}.Release|x86.Build.0 = Release|x86
+		{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}.Debug|x86.Build.0 = Debug|Any CPU
+		{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}.Release|x86.ActiveCfg = Release|Any CPU
+		{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}.Release|x86.Build.0 = Release|Any CPU
+		{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}.Default|Any CPU.ActiveCfg = Debug|Any CPU
+		{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}.Default|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = covtool\covtool.csproj
