@@ -84,6 +84,11 @@ namespace XR.Mono.Cover
         {
             return Lines.FirstOrDefault();
         }
+
+        public Dictionary<int, int> GetHitCounts()
+        {
+            return hitCounts;
+        }
     }
 
 }
