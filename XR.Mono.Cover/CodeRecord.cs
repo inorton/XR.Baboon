@@ -64,7 +64,7 @@ namespace XR.Mono.Cover
 
         public virtual double Coverage {
             get {
-                return (hitCounts.Count * 1.0) / Lines.Distinct ().Count ();
+                return Lines.Any() ? (hitCounts.Count * 1.0) / Lines.Distinct ().Count () : 0.0D;
             }
             set {}
         }
