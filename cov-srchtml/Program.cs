@@ -146,7 +146,7 @@ $('#jstree').on('changed.jstree', function (e, data) {
 
                 if (!srcFileName.StartsWith(srcDir)
                     || srcFileName.EndsWith("/Properties/AssemblyInfo.cs")
-                    || dirName.EndsWith("/obj/Debug"))
+                    || dirName.Contains("/obj/"))
                 {
                     continue;
                 }
@@ -204,7 +204,7 @@ $('#jstree').on('changed.jstree', function (e, data) {
                     writer.WriteLine(
                         $"<tr><td class='num'>{n}&nbsp;</td>" +
                         $"<td class='num{hitsClass}'>{hitsTxt}&nbsp;</td>" +
-                        $"<td class='code{codeClass}'><pre>{escLine}</pre></td></tr>");
+                        $"<td><pre><span class='code{codeClass}'>{escLine}</span></pre></td></tr>");
                 }
                 
                 writer.WriteLine($"</table>\n</body>");
