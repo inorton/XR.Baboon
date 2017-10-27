@@ -20,7 +20,7 @@ clean:
 install_generic:
 	install -d $(DESTDIR)$(INSTDIR) $(DESTDIR)$(BINDIR)
 	install covtool/bin/XR.Mono.Cover.dll $(DESTDIR)$(INSTDIR)
-	install covtool/bin/cov-gtk.exe $(DESTDIR)$(INSTDIR)
+	install covtool/bin/cov-gtk.exe $(DESTDIR)$(INSTDIR) || true
 	install covtool/bin/cov-html.exe $(DESTDIR)$(INSTDIR)
 	install scripts/cov-gtk $(DESTDIR)$(BINDIR)
 	install scripts/cov-html $(DESTDIR)$(BINDIR)
