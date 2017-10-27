@@ -170,7 +170,10 @@ $('#jstree').on('changed.jstree', function (e, data) {
             }
         }
 
-        private static void GenerateCoverageColourisedFile(string srcFile, string relSrcFile, string outFile,
+        private static void GenerateCoverageColourisedFile(
+            string srcFile, 
+            string relSrcFile, 
+            string outFile,
             IEnumerable<CodeRecord> codeRecords)
         {
             Directory.CreateDirectory(new FileInfo(outFile).DirectoryName);

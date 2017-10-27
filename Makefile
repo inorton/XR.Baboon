@@ -12,6 +12,10 @@ makebundle: all
 clean:
 	rm -rf cov-gtk/obj
 	rm -rf cov-gtk/bin
+	rm -rf cov-html/obj
+	rm -rf cov-html/bin
+	rm -rf cov-srchtml/obj
+	rm -rf cov-srchtml/bin
 	rm -rf covtool/obj
 	rm -rf covtool/bin
 	rm -rf XR.Mono.Cover/obj
@@ -22,8 +26,10 @@ install_generic:
 	install covtool/bin/XR.Mono.Cover.dll $(DESTDIR)$(INSTDIR)
 	install covtool/bin/cov-gtk.exe $(DESTDIR)$(INSTDIR) || true
 	install covtool/bin/cov-html.exe $(DESTDIR)$(INSTDIR)
+	install covtool/bin/cov-srchtml.exe $(DESTDIR)$(INSTDIR)
 	install scripts/cov-gtk $(DESTDIR)$(BINDIR)
 	install scripts/cov-html $(DESTDIR)$(BINDIR)
+	install scripts/cov-srchtml $(DESTDIR)$(BINDIR)
 
 installbundle: install_generic
 	install -m 755 covem $(DESTDIR)$(BINDIR)
