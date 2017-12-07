@@ -5,15 +5,23 @@ namespace XR.Baboon
 	public partial class MainWindow
 	{
 		private global::Gtk.UIManager UIManager;
-		private global::Gtk.Action openAction;
-		private global::Gtk.Action remapSourcePaths;
-		private global::Gtk.VBox vbox1;
-		private global::Gtk.Toolbar toolbar1;
-		private global::Gtk.HPaned hpaned1;
-		private global::Gtk.ScrolledWindow GtkScrolledWindow;
-		private global::Gtk.TreeView itemtree;
-		private global::Gtk.Notebook notebook1;
 		
+		private global::Gtk.Action openAction;
+		
+		private global::Gtk.Action remapSourcePaths;
+		
+		private global::Gtk.VBox vbox1;
+		
+		private global::Gtk.Toolbar toolbar1;
+		
+		private global::Gtk.HPaned hpaned1;
+		
+		private global::Gtk.ScrolledWindow GtkScrolledWindow;
+		
+		private global::Gtk.TreeView itemtree;
+		
+		private global::Gtk.Notebook notebook1;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using Gtk;
-using GtkSourceView;
 using System.Collections.Generic;
 using XR.Mono.Cover;
 using System.Linq;
@@ -9,16 +8,14 @@ using System.Linq;
 namespace XR.Baboon
 {
     public partial class MainWindow: Gtk.Window
-    {	
-
-        SourceLanguageManager sourceManager = new SourceLanguageManager ();
+    {			
         TreeItemManager treeManager = new TreeItemManager ();
 
         public const string VisitedOnceBG = "#aaffaa";
         public const string VisitedMoreBG = "#88cc88";
 
 
-        public void RenderCoverage (SourceBuffer buf, CodeRecord rec)
+		public void RenderCoverage (TextBuffer buf, CodeRecord rec)
         {
             foreach ( var line in rec.GetLines() ){
                 var hits = rec.GetHits(line);
@@ -37,7 +34,7 @@ namespace XR.Baboon
                 openFiles.Remove (file);
         }
 
-        Dictionary<string,SourceView> sourceviews = new Dictionary<string, SourceView> ();
+		Dictionary<string,TextView> sourceviews = new Dictionary<string, TextView> ();
         FilesystemMap fsmap = new FilesystemMap();
 
         public void OpenSourceFile (List<CodeRecord> recs)
@@ -82,30 +79,26 @@ namespace XR.Baboon
 
             openFiles.Add (origfile);
 
-            SourceLanguage language = sourceManager.GetLanguage ("c-sharp");
-            var buf = new SourceBuffer (language);
+			var buf = new TextBuffer (new TextTagTable());
+
             TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
             TextTag visitedMore = new TextTag ("visited_more") { Background = VisitedMoreBG };
             buf.TagTable.Add (visitedOnce);
             buf.TagTable.Add (visitedMore);
-            buf.HighlightSyntax = true;
+            // buf.HighlightSyntax = true;
             buf.Text = System.IO.File.ReadAllText (filename);
 
             var page = new SourcePage ();
 
-            var sv = new SourceView (buf);
-
-            // sv.ScrollToIter (buf.GetIterAtLineOffset (22, 0), 1.1, false, 0.0, 0.0);
-            sv.HighlightCurrentLine = true;
+			var sv = new TextView (buf);
+			        
             sv.Editable = false;
-            sv.ShowLineNumbers = true;
 
             var fp = System.IO.Path.GetFullPath (filename);
 
             page.Window.Add (sv);
             page.SetHeadingText (fp);
             page.SetSubHeadingText ("");
-
 
 
             var fname = System.IO.Path.GetFileName (filename);
@@ -119,7 +112,16 @@ namespace XR.Baboon
 
             int total_lines = 0;
             int covered_lines = 0;
+
+			var text_lines = File.ReadAllLines (filename);
+			int line = 1;
+			foreach (var text_line in text_lines) {
+				buf.Text += String.Format ("{0:-4} {1}\n", line, text_line);
+			}
+
             buf.Text = File.ReadAllText (filename);
+
+
             foreach (var rec in recs) {
                 RenderCoverage (buf, rec);
                 total_lines += rec.GetLines().Length;
@@ -208,7 +210,7 @@ namespace XR.Baboon
                     var toopen = from r in records where r.SourceFile == rec.SourceFile select r;
                     var tmp = new List<CodeRecord> (toopen);
                     OpenSourceFile (tmp);
-                    SourceView sv = null;
+                    TextView sv = null;
 
                     string localfile = null;
                     if ( fsmap.SourceMap.TryGetValue( rec.SourceFile, out localfile ) ){
@@ -290,8 +292,6 @@ namespace XR.Baboon
                     }
                 }
             }
-
         }
-
     }
 }

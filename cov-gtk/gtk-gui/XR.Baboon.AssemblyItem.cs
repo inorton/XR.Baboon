@@ -5,11 +5,15 @@ namespace XR.Baboon
 	public partial class AssemblyItem
 	{
 		private global::Gtk.VBox vbox3;
-		private global::Gtk.Label assemblyName;
-		private global::Gtk.Label sourceFolderPath;
-		private global::Gtk.FileChooserButton newFolderPath;
-		private global::Gtk.HSeparator hseparator1;
 		
+		private global::Gtk.Label assemblyName;
+		
+		private global::Gtk.Label sourceFolderPath;
+		
+		private global::Gtk.FileChooserButton newFolderPath;
+		
+		private global::Gtk.HSeparator hseparator1;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);

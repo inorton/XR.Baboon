@@ -5,10 +5,13 @@ namespace XR.Baboon
 	public partial class SourceHeaderBlock
 	{
 		private global::Gtk.VBox vbox1;
-		private global::Gtk.Label heading;
-		private global::Gtk.Label subheading;
-		private global::Gtk.ProgressBar percentage;
 		
+		private global::Gtk.Label heading;
+		
+		private global::Gtk.Label subheading;
+		
+		private global::Gtk.ProgressBar percentage;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);

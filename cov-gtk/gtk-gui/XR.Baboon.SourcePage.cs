@@ -5,10 +5,13 @@ namespace XR.Baboon
 	public partial class SourcePage
 	{
 		private global::Gtk.VBox vbox2;
-		private global::XR.Baboon.SourceHeaderBlock header;
-		private global::Gtk.ScrolledWindow scroller;
-		private global::Gtk.Statusbar statusbar;
 		
+		private global::XR.Baboon.SourceHeaderBlock header;
+		
+		private global::Gtk.ScrolledWindow scroller;
+		
+		private global::Gtk.Statusbar statusbar;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);
@@ -20,9 +23,7 @@ namespace XR.Baboon
 			this.vbox2.Name = "vbox2";
 			this.vbox2.Spacing = 6;
 			// Container child vbox2.Gtk.Box+BoxChild
-			this.header = new global::XR.Baboon.SourceHeaderBlock ();
-			this.header.Events = ((global::Gdk.EventMask)(256));
-			this.header.Name = "header";
+			this.header = null;
 			this.vbox2.Add (this.header);
 			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.vbox2 [this.header]));
 			w1.Position = 0;
