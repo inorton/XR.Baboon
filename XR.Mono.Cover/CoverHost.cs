@@ -108,8 +108,8 @@ namespace XR.Mono.Cover
                     }
                 } catch ( System.Reflection.ReflectionTypeLoadException ) {
                     Log ("warning: could not load types from {0}", afile );
-                } catch ( System.ExecutionEngineException ) {
-                    Log ("warning: ExecutionEngineException with {0}", afile);
+                } catch ( SystemException ) {
+                    Log ("warning: possible ExecutionEngineException with {0}", afile);
                 } finally {
                     loadedAssemblies.Add( name ); // don't try again
                 }
