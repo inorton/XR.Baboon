@@ -5,10 +5,13 @@ namespace XR.Baboon
 	public partial class CloserTabLabel
 	{
 		private global::Gtk.HBox hbox1;
-		private global::Gtk.Label label;
-		private global::Gtk.Button closer;
-		private global::Gtk.Image image1;
 		
+		private global::Gtk.Label label;
+		
+		private global::Gtk.Button closer;
+		
+		private global::Gtk.Image image1;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);
@@ -36,7 +39,6 @@ namespace XR.Baboon
 			this.image1.Name = "image1";
 			this.image1.Pixbuf = global::Stetic.IconLoader.LoadIcon (this, "gtk-close", global::Gtk.IconSize.Menu);
 			this.closer.Add (this.image1);
-			this.closer.Label = null;
 			this.hbox1.Add (this.closer);
 			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.closer]));
 			w3.Position = 1;

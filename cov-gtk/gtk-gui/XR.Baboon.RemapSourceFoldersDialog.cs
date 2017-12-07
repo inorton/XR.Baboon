@@ -5,13 +5,19 @@ namespace XR.Baboon
 	public partial class RemapSourceFoldersDialog
 	{
 		private global::Gtk.VBox vbox3;
-		private global::Gtk.Label label1;
-		private global::Gtk.ScrolledWindow scrolledwindow1;
-		private global::Gtk.VBox assemblyList;
-		private global::Gtk.Alignment alignment1;
-		private global::Gtk.Button buttonCancel;
-		private global::Gtk.Button buttonOk;
 		
+		private global::Gtk.Label label1;
+		
+		private global::Gtk.ScrolledWindow scrolledwindow1;
+		
+		private global::Gtk.VBox assemblyList;
+		
+		private global::Gtk.Alignment alignment1;
+		
+		private global::Gtk.Button buttonCancel;
+		
+		private global::Gtk.Button buttonOk;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);

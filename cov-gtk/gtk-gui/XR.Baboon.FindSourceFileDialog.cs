@@ -5,13 +5,19 @@ namespace XR.Baboon
 	public partial class FindSourceFileDialog
 	{
 		private global::Gtk.VBox vbox2;
-		private global::Gtk.Label label1;
-		private global::Gtk.Label assemblyName;
-		private global::Gtk.Label missingFilePath;
-		private global::Gtk.FileChooserWidget fileChooser;
-		private global::Gtk.Button buttonCancel;
-		private global::Gtk.Button buttonOk;
 		
+		private global::Gtk.Label label1;
+		
+		private global::Gtk.Label assemblyName;
+		
+		private global::Gtk.Label missingFilePath;
+		
+		private global::Gtk.FileChooserWidget fileChooser;
+		
+		private global::Gtk.Button buttonCancel;
+		
+		private global::Gtk.Button buttonOk;
+
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);
