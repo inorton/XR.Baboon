@@ -7,6 +7,11 @@ using XR.Mono.Cover;
 
 namespace covsrchtml
 {
+    /// <summary>
+    /// generate
+    /// * source code html pages, coloured & annotated according to coverage status
+    /// * a tree view for navigation, with files annotated by coverage %
+    /// </summary>
     internal class Program
     {
         /// <summary>

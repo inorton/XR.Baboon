@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head><title>/StatsdClient/Dogstatsd.cs</title></head>
+
+<style>
+.num {
+  text-align:right;
+  padding-right:3px;
+  font-size:80%;
+}
+.hit-count-good {
+  background-color:#73b973;
+}
+.hit-count-bad {
+  background-color:#ff7373;
+}
+.code {
+  font-family:monospace;
+}
+.nm-cov-good {
+  background-color:#a2d0a2;
+}
+.nm-cov-bad {
+  background-color:#ffa2a2;
+}
+pre {
+  margin:0px;
+}
+body {
+  font-family:sans-serif;
+}
+</style>
+<body>
+<table cellspacing='0' cellpadding='0'>
+<tr><td class='num'>1&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System;</span></pre></td></tr>
+<tr><td class='num'>2&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>3&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>namespace StatsdClient</span></pre></td></tr>
+<tr><td class='num'>4&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>{</span></pre></td></tr>
+<tr><td class='num'>5&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    public static class DogStatsd</span></pre></td></tr>
+<tr><td class='num'>6&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    {</span></pre></td></tr>
+<tr><td class='num'>7&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private static Statsd _statsD;</span></pre></td></tr>
+<tr><td class='num'>8&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private static string _prefix;</span></pre></td></tr>
+<tr><td class='num'>9&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>10&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Configure(StatsdConfig config)</span></pre></td></tr>
+<tr><td class='num'>11&nbsp;</td><td class='num hit-count-good'>7&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>12&nbsp;</td><td class='num hit-count-good'>7&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (config == null)</span></pre></td></tr>
+<tr><td class='num'>13&nbsp;</td><td class='num hit-count-good'>2&nbsp;</td><td><pre><span class='code nm-cov-good'>                throw new ArgumentNullException(&quot;config&quot;);</span></pre></td></tr>
+<tr><td class='num'>14&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>15&nbsp;</td><td class='num hit-count-good'>18&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (string.IsNullOrEmpty(config.StatsdServerName))</span></pre></td></tr>
+<tr><td class='num'>16&nbsp;</td><td class='num hit-count-good'>2&nbsp;</td><td><pre><span class='code nm-cov-good'>                throw new ArgumentNullException(&quot;config.StatsdServername&quot;);</span></pre></td></tr>
+<tr><td class='num'>17&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>18&nbsp;</td><td class='num hit-count-good'>10&nbsp;</td><td><pre><span class='code nm-cov-good'>            _prefix = config.Prefix;</span></pre></td></tr>
+<tr><td class='num'>19&nbsp;</td><td class='num hit-count-good'>15&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD = string.IsNullOrEmpty(config.StatsdServerName)</span></pre></td></tr>
+<tr><td class='num'>20&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                      ? null</span></pre></td></tr>
+<tr><td class='num'>21&nbsp;</td><td class='num hit-count-good'>25&nbsp;</td><td><pre><span class='code nm-cov-good'>                      : new Statsd(new StatsdUDP(config.StatsdServerName, config.StatsdPort, config.StatsdMaxUDPPacketSize));</span></pre></td></tr>
+<tr><td class='num'>22&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>23&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>24&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Event(string title, string text, string alertType = null, string aggregationKey = null, string sourceType = null, int? dateHappened = null, string priority = null, string hostname = null, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>25&nbsp;</td><td class='num hit-count-good'>2&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>26&nbsp;</td><td class='num hit-count-good'>2&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>27&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>28&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>29&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>30&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send(title, text, alertType, aggregationKey, sourceType, dateHappened, priority, hostname, tags);</span></pre></td></tr>
+<tr><td class='num'>31&nbsp;</td><td class='num hit-count-good'>2&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>32&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>33&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>34&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Counter&lt;T&gt;(string statName, T value, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>35&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>36&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>37&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>38&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>39&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>40&nbsp;</td><td class='num hit-count-good'>15&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Counting, T&gt;(BuildNamespacedStatName(statName), value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>41&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>42&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>43&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Increment(string statName, int value = 1, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>44&nbsp;</td><td class='num hit-count-good'>7&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>45&nbsp;</td><td class='num hit-count-good'>7&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>46&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>47&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>48&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>49&nbsp;</td><td class='num hit-count-good'>21&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Counting, int&gt;(BuildNamespacedStatName(statName), value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>50&nbsp;</td><td class='num hit-count-good'>7&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>51&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>52&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Decrement(string statName, int value = 1, double sampleRate = 1.0, params string[] tags)</span></pre></td></tr>
+<tr><td class='num'>53&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>54&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>55&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>56&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>57&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>58&nbsp;</td><td class='num hit-count-good'>12&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Counting, int&gt;(BuildNamespacedStatName(statName), -value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>59&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>60&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>61&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Gauge&lt;T&gt;(string statName, T value, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>62&nbsp;</td><td class='num hit-count-good'>9&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>63&nbsp;</td><td class='num hit-count-good'>9&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>64&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>65&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>66&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>67&nbsp;</td><td class='num hit-count-good'>27&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Gauge, T&gt;(BuildNamespacedStatName(statName), value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>68&nbsp;</td><td class='num hit-count-good'>9&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>69&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>70&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Histogram&lt;T&gt;(string statName, T value, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>71&nbsp;</td><td class='num hit-count-good'>8&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>72&nbsp;</td><td class='num hit-count-good'>8&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>73&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>74&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>75&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>76&nbsp;</td><td class='num hit-count-good'>24&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Histogram, T&gt;(BuildNamespacedStatName(statName), value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>77&nbsp;</td><td class='num hit-count-good'>8&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>78&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>79&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Set&lt;T&gt;(string statName, T value, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>80&nbsp;</td><td class='num hit-count-good'>12&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>81&nbsp;</td><td class='num hit-count-good'>12&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>82&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>83&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>84&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>85&nbsp;</td><td class='num hit-count-good'>36&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Set, T&gt;(BuildNamespacedStatName(statName), value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>86&nbsp;</td><td class='num hit-count-good'>12&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>87&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>88&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Timer&lt;T&gt;(string statName, T value, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>89&nbsp;</td><td class='num hit-count-good'>18&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>90&nbsp;</td><td class='num hit-count-good'>18&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>91&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>92&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return;</span></pre></td></tr>
+<tr><td class='num'>93&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>94&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>95&nbsp;</td><td class='num hit-count-good'>54&nbsp;</td><td><pre><span class='code nm-cov-good'>            _statsD.Send&lt;Statsd.Timing, T&gt;(BuildNamespacedStatName(statName), value, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>96&nbsp;</td><td class='num hit-count-good'>18&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>97&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>98&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>99&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static IDisposable StartTimer(string name, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>100&nbsp;</td><td class='num hit-count-good'>10&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>101&nbsp;</td><td class='num hit-count-good'>20&nbsp;</td><td><pre><span class='code nm-cov-good'>            return new MetricsTimer(name, sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>102&nbsp;</td><td class='num hit-count-good'>10&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>103&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>104&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static void Time(Action action, string statName, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>105&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>106&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>107&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>108&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                action();</span></pre></td></tr>
+<tr><td class='num'>109&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            }</span></pre></td></tr>
+<tr><td class='num'>110&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            else</span></pre></td></tr>
+<tr><td class='num'>111&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>            {</span></pre></td></tr>
+<tr><td class='num'>112&nbsp;</td><td class='num hit-count-good'>12&nbsp;</td><td><pre><span class='code nm-cov-good'>                _statsD.Send(action, BuildNamespacedStatName(statName), sampleRate, tags);</span></pre></td></tr>
+<tr><td class='num'>113&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>            }</span></pre></td></tr>
+<tr><td class='num'>114&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>115&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>116&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public static T Time&lt;T&gt;(Func&lt;T&gt; func, string statName, double sampleRate = 1.0, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>117&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>118&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (_statsD == null)</span></pre></td></tr>
+<tr><td class='num'>119&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>            {</span></pre></td></tr>
+<tr><td class='num'>120&nbsp;</td><td class='num hit-count-bad'>0&nbsp;</td><td><pre><span class='code nm-cov-bad'>                return func();</span></pre></td></tr>
+<tr><td class='num'>121&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>122&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>123&nbsp;</td><td class='num hit-count-good'>15&nbsp;</td><td><pre><span class='code nm-cov-good'>            using (StartTimer(statName, sampleRate, tags))</span></pre></td></tr>
+<tr><td class='num'>124&nbsp;</td><td class='num hit-count-good'>5&nbsp;</td><td><pre><span class='code nm-cov-good'>            {</span></pre></td></tr>
+<tr><td class='num'>125&nbsp;</td><td class='num hit-count-good'>10&nbsp;</td><td><pre><span class='code nm-cov-good'>                return func();</span></pre></td></tr>
+<tr><td class='num'>126&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>127&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>128&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>129&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private static string BuildNamespacedStatName(string statName)</span></pre></td></tr>
+<tr><td class='num'>130&nbsp;</td><td class='num hit-count-good'>67&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>131&nbsp;</td><td class='num hit-count-good'>134&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (string.IsNullOrEmpty(_prefix))</span></pre></td></tr>
+<tr><td class='num'>132&nbsp;</td><td class='num hit-count-good'>66&nbsp;</td><td><pre><span class='code nm-cov-good'>            {</span></pre></td></tr>
+<tr><td class='num'>133&nbsp;</td><td class='num hit-count-good'>66&nbsp;</td><td><pre><span class='code nm-cov-good'>                return statName;</span></pre></td></tr>
+<tr><td class='num'>134&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>135&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>136&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>            return _prefix + &quot;.&quot; + statName;</span></pre></td></tr>
+<tr><td class='num'>137&nbsp;</td><td class='num hit-count-good'>67&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>138&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    }</span></pre></td></tr>
+<tr><td class='num'>139&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>}</span></pre></td></tr>
+</table>
+</body>

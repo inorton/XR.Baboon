@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head><title>/StatsdClient/IStatsd.cs</title></head>
+
+<style>
+.num {
+  text-align:right;
+  padding-right:3px;
+  font-size:80%;
+}
+.hit-count-good {
+  background-color:#73b973;
+}
+.hit-count-bad {
+  background-color:#ff7373;
+}
+.code {
+  font-family:monospace;
+}
+.nm-cov-good {
+  background-color:#a2d0a2;
+}
+.nm-cov-bad {
+  background-color:#ffa2a2;
+}
+pre {
+  margin:0px;
+}
+body {
+  font-family:sans-serif;
+}
+</style>
+<body>
+<table cellspacing='0' cellpadding='0'>
+<tr><td class='num'>1&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System;</span></pre></td></tr>
+<tr><td class='num'>2&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Collections.Generic;</span></pre></td></tr>
+<tr><td class='num'>3&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>4&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>namespace StatsdClient</span></pre></td></tr>
+<tr><td class='num'>5&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>{</span></pre></td></tr>
+<tr><td class='num'>6&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    public interface IStatsd</span></pre></td></tr>
+<tr><td class='num'>7&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    {</span></pre></td></tr>
+<tr><td class='num'>8&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        List&lt;string&gt; Commands { get; }</span></pre></td></tr>
+<tr><td class='num'>9&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Send&lt;TCommandType, T&gt;(string name, T value, double sampleRate, params string[] tags) where TCommandType : StatsdClient.Statsd.Metric;</span></pre></td></tr>
+<tr><td class='num'>10&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Add&lt;TCommandType, T&gt;(string name, T value, double sampleRate, params string[] tags) where TCommandType : StatsdClient.Statsd.Metric;</span></pre></td></tr>
+<tr><td class='num'>11&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Send(string title, string text, string alertType, string aggregationKey, string sourceType, int? dateHappened, string priority, string hostname, string[] tags, bool truncateIfTooLong = false);</span></pre></td></tr>
+<tr><td class='num'>12&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Add(string title, string text, string alertType, string aggregationKey, string sourceType, int? dateHappened, string priority, string hostname, string[] tags);</span></pre></td></tr>
+<tr><td class='num'>13&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Send(string command);</span></pre></td></tr>
+<tr><td class='num'>14&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Send();</span></pre></td></tr>
+<tr><td class='num'>15&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Add(Action actionToTime, string statName, double sampleRate, params string[] tags);</span></pre></td></tr>
+<tr><td class='num'>16&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        void Send(Action actionToTime, string statName, double sampleRate, params string[] tags);</span></pre></td></tr>
+<tr><td class='num'>17&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    }</span></pre></td></tr>
+<tr><td class='num'>18&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>}</span></pre></td></tr>
+</table>
+</body>

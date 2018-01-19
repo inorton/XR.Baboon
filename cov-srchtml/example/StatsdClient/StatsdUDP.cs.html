@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head><title>/StatsdClient/StatsdUDP.cs</title></head>
+
+<style>
+.num {
+  text-align:right;
+  padding-right:3px;
+  font-size:80%;
+}
+.hit-count-good {
+  background-color:#73b973;
+}
+.hit-count-bad {
+  background-color:#ff7373;
+}
+.code {
+  font-family:monospace;
+}
+.nm-cov-good {
+  background-color:#a2d0a2;
+}
+.nm-cov-bad {
+  background-color:#ffa2a2;
+}
+pre {
+  margin:0px;
+}
+body {
+  font-family:sans-serif;
+}
+</style>
+<body>
+<table cellspacing='0' cellpadding='0'>
+<tr><td class='num'>1&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System;</span></pre></td></tr>
+<tr><td class='num'>2&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Net;</span></pre></td></tr>
+<tr><td class='num'>3&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Net.Sockets;</span></pre></td></tr>
+<tr><td class='num'>4&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Text;</span></pre></td></tr>
+<tr><td class='num'>5&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Collections.Generic;</span></pre></td></tr>
+<tr><td class='num'>6&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>7&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>namespace StatsdClient</span></pre></td></tr>
+<tr><td class='num'>8&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>{</span></pre></td></tr>
+<tr><td class='num'>9&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    public class StatsdUDP : IDisposable, IStatsdUDP</span></pre></td></tr>
+<tr><td class='num'>10&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    {</span></pre></td></tr>
+<tr><td class='num'>11&nbsp;</td><td class='num hit-count-good'>181&nbsp;</td><td><pre><span class='code nm-cov-good'>        private int MaxUDPPacketSize { get; set; } // In bytes; default is MetricsConfig.DefaultStatsdMaxUDPPacketSize.</span></pre></td></tr>
+<tr><td class='num'>12&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // Set to zero for no limit.</span></pre></td></tr>
+<tr><td class='num'>13&nbsp;</td><td class='num hit-count-good'>93&nbsp;</td><td><pre><span class='code nm-cov-good'>        public IPEndPoint IPEndpoint { get; private set; }</span></pre></td></tr>
+<tr><td class='num'>14&nbsp;</td><td class='num hit-count-good'>92&nbsp;</td><td><pre><span class='code nm-cov-good'>        private Socket UDPSocket { get; set; }</span></pre></td></tr>
+<tr><td class='num'>15&nbsp;</td><td class='num hit-count-good'>12&nbsp;</td><td><pre><span class='code nm-cov-good'>        private string Name { get; set; }</span></pre></td></tr>
+<tr><td class='num'>16&nbsp;</td><td class='num hit-count-good'>22&nbsp;</td><td><pre><span class='code nm-cov-good'>        private int Port { get; set; }</span></pre></td></tr>
+<tr><td class='num'>17&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>18&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>        public StatsdUDP(string name, int port, int maxUDPPacketSize = StatsdConfig.DefaultStatsdMaxUDPPacketSize)</span></pre></td></tr>
+<tr><td class='num'>19&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>20&nbsp;</td><td class='num hit-count-good'>22&nbsp;</td><td><pre><span class='code nm-cov-good'>            Name = name;</span></pre></td></tr>
+<tr><td class='num'>21&nbsp;</td><td class='num hit-count-good'>22&nbsp;</td><td><pre><span class='code nm-cov-good'>            Port = port;</span></pre></td></tr>
+<tr><td class='num'>22&nbsp;</td><td class='num hit-count-good'>22&nbsp;</td><td><pre><span class='code nm-cov-good'>            MaxUDPPacketSize = maxUDPPacketSize;</span></pre></td></tr>
+<tr><td class='num'>23&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>24&nbsp;</td><td class='num hit-count-good'>33&nbsp;</td><td><pre><span class='code nm-cov-good'>            UDPSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);</span></pre></td></tr>
+<tr><td class='num'>25&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>26&nbsp;</td><td class='num hit-count-good'>22&nbsp;</td><td><pre><span class='code nm-cov-good'>            var ipAddress = GetIpv4Address(name);</span></pre></td></tr>
+<tr><td class='num'>27&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>28&nbsp;</td><td class='num hit-count-good'>44&nbsp;</td><td><pre><span class='code nm-cov-good'>            IPEndpoint = new IPEndPoint(ipAddress, Port);</span></pre></td></tr>
+<tr><td class='num'>29&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>30&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>31&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private IPAddress GetIpv4Address(string name)</span></pre></td></tr>
+<tr><td class='num'>32&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>33&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IPAddress ipAddress;</span></pre></td></tr>
+<tr><td class='num'>34&nbsp;</td><td class='num hit-count-good'>22&nbsp;</td><td><pre><span class='code nm-cov-good'>            bool isValidIPAddress = IPAddress.TryParse(name, out ipAddress);</span></pre></td></tr>
+<tr><td class='num'>35&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>36&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (!isValidIPAddress)</span></pre></td></tr>
+<tr><td class='num'>37&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>            {</span></pre></td></tr>
+<tr><td class='num'>38&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>                IPAddress[] addressList = Dns.GetHostEntry(Name).AddressList;</span></pre></td></tr>
+<tr><td class='num'>39&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>40&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>                int positionForIpv4 = addressList.Length - 1;</span></pre></td></tr>
+<tr><td class='num'>41&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>42&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>                ipAddress = addressList[positionForIpv4];</span></pre></td></tr>
+<tr><td class='num'>43&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>            }</span></pre></td></tr>
+<tr><td class='num'>44&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>            return ipAddress;</span></pre></td></tr>
+<tr><td class='num'>45&nbsp;</td><td class='num hit-count-good'>11&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>46&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>47&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void Send(string command)</span></pre></td></tr>
+<tr><td class='num'>48&nbsp;</td><td class='num hit-count-good'>77&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>49&nbsp;</td><td class='num hit-count-good'>308&nbsp;</td><td><pre><span class='code nm-cov-good'>            Send(Encoding.UTF8.GetBytes(command));</span></pre></td></tr>
+<tr><td class='num'>50&nbsp;</td><td class='num hit-count-good'>76&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>51&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>52&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private void Send(byte[] encodedCommand)</span></pre></td></tr>
+<tr><td class='num'>53&nbsp;</td><td class='num hit-count-good'>83&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>54&nbsp;</td><td class='num hit-count-good'>249&nbsp;</td><td><pre><span class='code nm-cov-good'>            if (MaxUDPPacketSize &gt; 0 &amp;&amp; encodedCommand.Length &gt; MaxUDPPacketSize)</span></pre></td></tr>
+<tr><td class='num'>55&nbsp;</td><td class='num hit-count-good'>4&nbsp;</td><td><pre><span class='code nm-cov-good'>            {</span></pre></td></tr>
+<tr><td class='num'>56&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                // If the command is too big to send, linear search backwards from the maximum</span></pre></td></tr>
+<tr><td class='num'>57&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                // packet size to see if we can find a newline delimiting two stats. If we can,</span></pre></td></tr>
+<tr><td class='num'>58&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                // split the message across the newline and try sending both componenets individually</span></pre></td></tr>
+<tr><td class='num'>59&nbsp;</td><td class='num hit-count-good'>8&nbsp;</td><td><pre><span class='code nm-cov-good'>                byte newline = Encoding.UTF8.GetBytes(&quot;\n&quot;)[0];</span></pre></td></tr>
+<tr><td class='num'>60&nbsp;</td><td class='num hit-count-good'>1540&nbsp;</td><td><pre><span class='code nm-cov-good'>                for (int i = MaxUDPPacketSize; i &gt; 0; i--)</span></pre></td></tr>
+<tr><td class='num'>61&nbsp;</td><td class='num hit-count-good'>767&nbsp;</td><td><pre><span class='code nm-cov-good'>                {</span></pre></td></tr>
+<tr><td class='num'>62&nbsp;</td><td class='num hit-count-good'>767&nbsp;</td><td><pre><span class='code nm-cov-good'>                    if (encodedCommand[i] == newline)</span></pre></td></tr>
+<tr><td class='num'>63&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                    {</span></pre></td></tr>
+<tr><td class='num'>64&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                        byte[] encodedCommandFirst = new byte[i];</span></pre></td></tr>
+<tr><td class='num'>65&nbsp;</td><td class='num hit-count-good'>6&nbsp;</td><td><pre><span class='code nm-cov-good'>                        Array.Copy(encodedCommand, encodedCommandFirst, encodedCommandFirst.Length); // encodedCommand[0..i-1]</span></pre></td></tr>
+<tr><td class='num'>66&nbsp;</td><td class='num hit-count-good'>6&nbsp;</td><td><pre><span class='code nm-cov-good'>                        Send(encodedCommandFirst);</span></pre></td></tr>
+<tr><td class='num'>67&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>68&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                        int remainingCharacters = encodedCommand.Length - i - 1;</span></pre></td></tr>
+<tr><td class='num'>69&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                        if (remainingCharacters &gt; 0)</span></pre></td></tr>
+<tr><td class='num'>70&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                        {</span></pre></td></tr>
+<tr><td class='num'>71&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                            byte[] encodedCommandSecond = new byte[remainingCharacters];</span></pre></td></tr>
+<tr><td class='num'>72&nbsp;</td><td class='num hit-count-good'>6&nbsp;</td><td><pre><span class='code nm-cov-good'>                            Array.Copy(encodedCommand, i + 1, encodedCommandSecond, 0, encodedCommandSecond.Length); // encodedCommand[i+1..end]</span></pre></td></tr>
+<tr><td class='num'>73&nbsp;</td><td class='num hit-count-good'>6&nbsp;</td><td><pre><span class='code nm-cov-good'>                            Send(encodedCommandSecond);</span></pre></td></tr>
+<tr><td class='num'>74&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                        }</span></pre></td></tr>
+<tr><td class='num'>75&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>76&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>                        return; // We&#39;re done here if we were able to split the message.</span></pre></td></tr>
+<tr><td class='num'>77&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    }</span></pre></td></tr>
+<tr><td class='num'>78&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    // At this point we found an oversized message but we weren&#39;t able to find a </span></pre></td></tr>
+<tr><td class='num'>79&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    // newline to split upon. We&#39;ll still send it to the UDP socket, which upon sending an oversized message </span></pre></td></tr>
+<tr><td class='num'>80&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    // will fail silently if the user is running in release mode or report a SocketException if the user is </span></pre></td></tr>
+<tr><td class='num'>81&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    // running in debug mode.</span></pre></td></tr>
+<tr><td class='num'>82&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    // Since we&#39;re conservative with our MAX_UDP_PACKET_SIZE, the oversized message might even</span></pre></td></tr>
+<tr><td class='num'>83&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                    // be sent without issue.</span></pre></td></tr>
+<tr><td class='num'>84&nbsp;</td><td class='num hit-count-good'>764&nbsp;</td><td><pre><span class='code nm-cov-good'>                }</span></pre></td></tr>
+<tr><td class='num'>85&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>            }</span></pre></td></tr>
+<tr><td class='num'>86&nbsp;</td><td class='num hit-count-good'>320&nbsp;</td><td><pre><span class='code nm-cov-good'>            UDPSocket.SendTo(encodedCommand, encodedCommand.Length, SocketFlags.None, IPEndpoint);</span></pre></td></tr>
+<tr><td class='num'>87&nbsp;</td><td class='num hit-count-good'>82&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>88&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>89&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void Dispose()</span></pre></td></tr>
+<tr><td class='num'>90&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>        {</span></pre></td></tr>
+<tr><td class='num'>91&nbsp;</td><td class='num hit-count-good'>3&nbsp;</td><td><pre><span class='code nm-cov-good'>            UDPSocket.Close();</span></pre></td></tr>
+<tr><td class='num'>92&nbsp;</td><td class='num hit-count-good'>1&nbsp;</td><td><pre><span class='code nm-cov-good'>        }</span></pre></td></tr>
+<tr><td class='num'>93&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    }</span></pre></td></tr>
+<tr><td class='num'>94&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>}</span></pre></td></tr>
+</table>
+</body>

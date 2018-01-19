@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head><title>/Tests/StatsdUDPTests.cs</title></head>
+
+<style>
+.num {
+  text-align:right;
+  padding-right:3px;
+  font-size:80%;
+}
+.hit-count-good {
+  background-color:#73b973;
+}
+.hit-count-bad {
+  background-color:#ff7373;
+}
+.code {
+  font-family:monospace;
+}
+.nm-cov-good {
+  background-color:#a2d0a2;
+}
+.nm-cov-bad {
+  background-color:#ffa2a2;
+}
+pre {
+  margin:0px;
+}
+body {
+  font-family:sans-serif;
+}
+</style>
+<body>
+<table cellspacing='0' cellpadding='0'>
+<tr><td class='num'>1&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System;</span></pre></td></tr>
+<tr><td class='num'>2&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Configuration;</span></pre></td></tr>
+<tr><td class='num'>3&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Threading;</span></pre></td></tr>
+<tr><td class='num'>4&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Collections.Generic;</span></pre></td></tr>
+<tr><td class='num'>5&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using NUnit.Framework;</span></pre></td></tr>
+<tr><td class='num'>6&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using StatsdClient;</span></pre></td></tr>
+<tr><td class='num'>7&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using Tests.Helpers;</span></pre></td></tr>
+<tr><td class='num'>8&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>9&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>10&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>namespace Tests</span></pre></td></tr>
+<tr><td class='num'>11&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>{</span></pre></td></tr>
+<tr><td class='num'>12&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    // Most of StatsUDP is tested in StatsdUnitTests. This is mainly to test the splitting of oversized</span></pre></td></tr>
+<tr><td class='num'>13&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    // UDP packets</span></pre></td></tr>
+<tr><td class='num'>14&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    [TestFixture]</span></pre></td></tr>
+<tr><td class='num'>15&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    public class StatsUDPTests</span></pre></td></tr>
+<tr><td class='num'>16&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    {</span></pre></td></tr>
+<tr><td class='num'>17&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private UdpListener udpListener;</span></pre></td></tr>
+<tr><td class='num'>18&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private Thread listenThread;</span></pre></td></tr>
+<tr><td class='num'>19&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private int serverPort = Convert.ToInt32(ConfigurationManager.AppSettings[&quot;StatsdServerPort&quot;]);</span></pre></td></tr>
+<tr><td class='num'>20&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private string serverName = ConfigurationManager.AppSettings[&quot;StatsdServerName&quot;];</span></pre></td></tr>
+<tr><td class='num'>21&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private StatsdUDP udp;</span></pre></td></tr>
+<tr><td class='num'>22&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private Statsd statsd;</span></pre></td></tr>
+<tr><td class='num'>23&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private List&lt;string&gt; lastPulledMessages;</span></pre></td></tr>
+<tr><td class='num'>24&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>25&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [TestFixtureSetUp]</span></pre></td></tr>
+<tr><td class='num'>26&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void SetUpUdpListenerAndStatsd()</span></pre></td></tr>
+<tr><td class='num'>27&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>28&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udpListener = new UdpListener(serverName, serverPort);</span></pre></td></tr>
+<tr><td class='num'>29&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var metricsConfig = new StatsdConfig { StatsdServerName = serverName };</span></pre></td></tr>
+<tr><td class='num'>30&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            StatsdClient.DogStatsd.Configure(metricsConfig);</span></pre></td></tr>
+<tr><td class='num'>31&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp = new StatsdUDP(serverName, serverPort);</span></pre></td></tr>
+<tr><td class='num'>32&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd = new Statsd(udp);</span></pre></td></tr>
+<tr><td class='num'>33&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>34&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>35&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [TestFixtureTearDown]</span></pre></td></tr>
+<tr><td class='num'>36&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void TearDownUdpListener()</span></pre></td></tr>
+<tr><td class='num'>37&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>38&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udpListener.Dispose();</span></pre></td></tr>
+<tr><td class='num'>39&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.Dispose();</span></pre></td></tr>
+<tr><td class='num'>40&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>41&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>42&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [SetUp]</span></pre></td></tr>
+<tr><td class='num'>43&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void UdpListenerThread()</span></pre></td></tr>
+<tr><td class='num'>44&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>45&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            lastPulledMessages = new List&lt;string&gt;();</span></pre></td></tr>
+<tr><td class='num'>46&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread = new Thread(new ParameterizedThreadStart(udpListener.Listen));</span></pre></td></tr>
+<tr><td class='num'>47&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>48&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>49&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [TearDown]</span></pre></td></tr>
+<tr><td class='num'>50&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void ClearUdpListenerMessages()</span></pre></td></tr>
+<tr><td class='num'>51&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>52&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udpListener.GetAndClearLastMessages(); // just to be sure that nothing is left over</span></pre></td></tr>
+<tr><td class='num'>53&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>54&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>55&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // Test helper. Waits until the listener is done receiving a message,</span></pre></td></tr>
+<tr><td class='num'>56&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // then asserts that the passed string is equal to the message received.</span></pre></td></tr>
+<tr><td class='num'>57&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private void AssertWasReceived(string shouldBe, int index = 0)</span></pre></td></tr>
+<tr><td class='num'>58&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>59&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            if (lastPulledMessages.Count == 0)</span></pre></td></tr>
+<tr><td class='num'>60&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            {</span></pre></td></tr>
+<tr><td class='num'>61&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                // Stall until the the listener receives a message or times out</span></pre></td></tr>
+<tr><td class='num'>62&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                while (listenThread.IsAlive) ;</span></pre></td></tr>
+<tr><td class='num'>63&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                lastPulledMessages = udpListener.GetAndClearLastMessages();</span></pre></td></tr>
+<tr><td class='num'>64&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>65&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>66&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            string actual;</span></pre></td></tr>
+<tr><td class='num'>67&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>68&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            try</span></pre></td></tr>
+<tr><td class='num'>69&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            {</span></pre></td></tr>
+<tr><td class='num'>70&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                actual = lastPulledMessages[index];</span></pre></td></tr>
+<tr><td class='num'>71&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>72&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            catch (System.ArgumentOutOfRangeException)</span></pre></td></tr>
+<tr><td class='num'>73&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            {</span></pre></td></tr>
+<tr><td class='num'>74&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                actual = null;</span></pre></td></tr>
+<tr><td class='num'>75&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            }</span></pre></td></tr>
+<tr><td class='num'>76&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.AreEqual(shouldBe, actual);</span></pre></td></tr>
+<tr><td class='num'>77&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>78&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>79&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>80&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send()</span></pre></td></tr>
+<tr><td class='num'>81&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>82&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // (Sanity test)</span></pre></td></tr>
+<tr><td class='num'>83&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread.Start();</span></pre></td></tr>
+<tr><td class='num'>84&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.Send(&quot;test-metric&quot;);</span></pre></td></tr>
+<tr><td class='num'>85&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(&quot;test-metric&quot;);</span></pre></td></tr>
+<tr><td class='num'>86&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>87&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>88&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>89&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_equal_to_udp_packet_limit_is_still_sent()</span></pre></td></tr>
+<tr><td class='num'>90&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>91&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var msg = new String(&#39;f&#39;, StatsdConfig.DefaultStatsdMaxUDPPacketSize);</span></pre></td></tr>
+<tr><td class='num'>92&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread.Start();</span></pre></td></tr>
+<tr><td class='num'>93&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.Send(msg);</span></pre></td></tr>
+<tr><td class='num'>94&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // As long as we&#39;re at or below the limit, the packet should still be sent </span></pre></td></tr>
+<tr><td class='num'>95&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(msg);</span></pre></td></tr>
+<tr><td class='num'>96&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>97&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>98&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>99&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_unsplittable_oversized_udp_packets_are_not_split_or_sent_and_no_exception_is_raised()</span></pre></td></tr>
+<tr><td class='num'>100&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>101&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // This message will be one byte longer than the theoretical limit of a UDP packet</span></pre></td></tr>
+<tr><td class='num'>102&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var msg = new String(&#39;f&#39;, 65508);</span></pre></td></tr>
+<tr><td class='num'>103&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread.Start();</span></pre></td></tr>
+<tr><td class='num'>104&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Counting, int&gt;(msg, 1);</span></pre></td></tr>
+<tr><td class='num'>105&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Send();</span></pre></td></tr>
+<tr><td class='num'>106&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // It shouldn&#39;t be split or sent, and no exceptions should be raised.</span></pre></td></tr>
+<tr><td class='num'>107&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(null);</span></pre></td></tr>
+<tr><td class='num'>108&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>109&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>110&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>111&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_oversized_udp_packets_are_split_if_possible()</span></pre></td></tr>
+<tr><td class='num'>112&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>113&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var msg = new String(&#39;f&#39;, (StatsdConfig.DefaultStatsdMaxUDPPacketSize - 15));</span></pre></td></tr>
+<tr><td class='num'>114&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread.Start(3); // Listen for 3 messages</span></pre></td></tr>
+<tr><td class='num'>115&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Counting, int&gt;(msg, 1);</span></pre></td></tr>
+<tr><td class='num'>116&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Gauge, int&gt;(msg, 2);</span></pre></td></tr>
+<tr><td class='num'>117&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Send();</span></pre></td></tr>
+<tr><td class='num'>118&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // These two metrics should be split as their combined lengths exceed the maximum packet size</span></pre></td></tr>
+<tr><td class='num'>119&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(String.Format(&quot;{0}:1|c&quot;, msg), 0);</span></pre></td></tr>
+<tr><td class='num'>120&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(String.Format(&quot;{0}:2|g&quot;, msg), 1);</span></pre></td></tr>
+<tr><td class='num'>121&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // No extra metric should be sent at the end</span></pre></td></tr>
+<tr><td class='num'>122&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(null, 2);</span></pre></td></tr>
+<tr><td class='num'>123&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>124&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>125&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>126&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_oversized_udp_packets_are_split_if_possible_with_multiple_messages_in_one_packet()</span></pre></td></tr>
+<tr><td class='num'>127&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>128&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var msg = new String(&#39;f&#39;, StatsdConfig.DefaultStatsdMaxUDPPacketSize / 2);</span></pre></td></tr>
+<tr><td class='num'>129&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread.Start(3); // Listen for 3 messages</span></pre></td></tr>
+<tr><td class='num'>130&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Counting, int&gt;(&quot;counter&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>131&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Counting, int&gt;(msg, 2);</span></pre></td></tr>
+<tr><td class='num'>132&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Counting, int&gt;(msg, 3);</span></pre></td></tr>
+<tr><td class='num'>133&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Send();</span></pre></td></tr>
+<tr><td class='num'>134&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(String.Format(&quot;counter:1|c\n{0}:2|c&quot;, msg), 0);</span></pre></td></tr>
+<tr><td class='num'>135&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(String.Format(&quot;{0}:3|c&quot;, msg), 1);</span></pre></td></tr>
+<tr><td class='num'>136&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(null, 2);</span></pre></td></tr>
+<tr><td class='num'>137&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>138&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>139&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>140&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void set_max_udp_packet_size()</span></pre></td></tr>
+<tr><td class='num'>141&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>142&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // Make sure that we can set the max UDP packet size</span></pre></td></tr>
+<tr><td class='num'>143&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp = new StatsdUDP(serverName, serverPort, 10);</span></pre></td></tr>
+<tr><td class='num'>144&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd = new Statsd(udp);</span></pre></td></tr>
+<tr><td class='num'>145&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var msg = new String(&#39;f&#39;, 5);</span></pre></td></tr>
+<tr><td class='num'>146&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            listenThread.Start(2);</span></pre></td></tr>
+<tr><td class='num'>147&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Counting, int&gt;(msg, 1);</span></pre></td></tr>
+<tr><td class='num'>148&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Add&lt;Statsd.Gauge, int&gt;(msg, 2);</span></pre></td></tr>
+<tr><td class='num'>149&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            statsd.Send();</span></pre></td></tr>
+<tr><td class='num'>150&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            // Since our packet size limit is now 10, this (short) message should still be split</span></pre></td></tr>
+<tr><td class='num'>151&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(String.Format(&quot;{0}:1|c&quot;, msg), 0);</span></pre></td></tr>
+<tr><td class='num'>152&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            AssertWasReceived(String.Format(&quot;{0}:2|g&quot;, msg), 1);</span></pre></td></tr>
+<tr><td class='num'>153&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>154&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>155&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    }</span></pre></td></tr>
+<tr><td class='num'>156&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>}</span></pre></td></tr>
+</table>
+</body>

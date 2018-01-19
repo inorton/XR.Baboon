@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html>
+<head><title>/Tests/StatsdUnitTests.cs</title></head>
+
+<style>
+.num {
+  text-align:right;
+  padding-right:3px;
+  font-size:80%;
+}
+.hit-count-good {
+  background-color:#73b973;
+}
+.hit-count-bad {
+  background-color:#ff7373;
+}
+.code {
+  font-family:monospace;
+}
+.nm-cov-good {
+  background-color:#a2d0a2;
+}
+.nm-cov-bad {
+  background-color:#ffa2a2;
+}
+pre {
+  margin:0px;
+}
+body {
+  font-family:sans-serif;
+}
+</style>
+<body>
+<table cellspacing='0' cellpadding='0'>
+<tr><td class='num'>1&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System;</span></pre></td></tr>
+<tr><td class='num'>2&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Text;</span></pre></td></tr>
+<tr><td class='num'>3&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using System.Threading;</span></pre></td></tr>
+<tr><td class='num'>4&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using NUnit.Framework;</span></pre></td></tr>
+<tr><td class='num'>5&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using Rhino.Mocks;</span></pre></td></tr>
+<tr><td class='num'>6&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>using StatsdClient;</span></pre></td></tr>
+<tr><td class='num'>7&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>8&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>namespace Tests</span></pre></td></tr>
+<tr><td class='num'>9&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>{</span></pre></td></tr>
+<tr><td class='num'>10&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    [TestFixture]</span></pre></td></tr>
+<tr><td class='num'>11&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    public class UnitTests</span></pre></td></tr>
+<tr><td class='num'>12&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    {</span></pre></td></tr>
+<tr><td class='num'>13&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private IStatsdUDP udp;</span></pre></td></tr>
+<tr><td class='num'>14&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private IRandomGenerator _randomGenerator;</span></pre></td></tr>
+<tr><td class='num'>15&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private IStopWatchFactory _stopwatch;</span></pre></td></tr>
+<tr><td class='num'>16&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>17&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [SetUp]</span></pre></td></tr>
+<tr><td class='num'>18&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void Setup()</span></pre></td></tr>
+<tr><td class='num'>19&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>20&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp = MockRepository.GenerateMock&lt;IStatsdUDP&gt;();</span></pre></td></tr>
+<tr><td class='num'>21&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _randomGenerator = MockRepository.GenerateMock&lt;IRandomGenerator&gt;();</span></pre></td></tr>
+<tr><td class='num'>22&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _randomGenerator.Stub(x =&gt; x.ShouldSend(Arg&lt;double&gt;.Is.Anything)).Return(true);</span></pre></td></tr>
+<tr><td class='num'>23&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch = MockRepository.GenerateMock&lt;IStopWatchFactory&gt;();</span></pre></td></tr>
+<tr><td class='num'>24&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>25&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>26&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>27&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		// =-=-=-=- COUNTER -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>28&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>29&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>30&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_increase_counter_by_x()</span></pre></td></tr>
+<tr><td class='num'>31&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>32&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>33&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>34&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;counter:5|c&quot;));</span></pre></td></tr>
+<tr><td class='num'>35&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>36&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>37&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>38&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_decrease_counter_by_x()</span></pre></td></tr>
+<tr><td class='num'>39&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>40&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>41&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, -5);</span></pre></td></tr>
+<tr><td class='num'>42&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;counter:-5|c&quot;));</span></pre></td></tr>
+<tr><td class='num'>43&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>44&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>45&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>46&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_increase_counter_by_x_and_tags()</span></pre></td></tr>
+<tr><td class='num'>47&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>48&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>49&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>50&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;counter:5|c|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>51&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>52&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>53&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		[Test]</span></pre></td></tr>
+<tr><td class='num'>54&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_increase_counter_by_x_and_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>55&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>56&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>57&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5, sampleRate: 0.1);</span></pre></td></tr>
+<tr><td class='num'>58&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;counter:5|c|@0.1&quot;));</span></pre></td></tr>
+<tr><td class='num'>59&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>60&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>61&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>62&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_increase_counter_by_x_and_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>63&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>64&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>65&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5, sampleRate: 0.1, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>66&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;counter:5|c|@0.1|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>67&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>68&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>69&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		[Test]</span></pre></td></tr>
+<tr><td class='num'>70&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		public void send_increase_counter_counting_exception_fails_silently()</span></pre></td></tr>
+<tr><td class='num'>71&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		{</span></pre></td></tr>
+<tr><td class='num'>72&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>73&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			udp.Stub(x =&gt; x.Send(Arg&lt;string&gt;.Is.Anything)).Throw(new Exception());</span></pre></td></tr>
+<tr><td class='num'>74&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>75&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Assert.Pass();</span></pre></td></tr>
+<tr><td class='num'>76&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		}</span></pre></td></tr>
+<tr><td class='num'>77&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>78&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>79&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_increase_counter_by_x()</span></pre></td></tr>
+<tr><td class='num'>80&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>81&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>82&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>83&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>84&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>85&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;counter:5|c&quot;));</span></pre></td></tr>
+<tr><td class='num'>86&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>87&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>88&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>89&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_increase_counter_by_x_with_tags()</span></pre></td></tr>
+<tr><td class='num'>90&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>91&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>92&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>93&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>94&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>95&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;counter:5|c|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>96&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>97&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>98&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>99&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_increase_counter_by_x_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>100&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>101&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>102&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5, sampleRate: 0.5);</span></pre></td></tr>
+<tr><td class='num'>103&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>104&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>105&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;counter:5|c|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>106&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>107&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>108&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>109&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_increase_counter_by_x_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>110&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>111&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>112&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>113&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>114&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>115&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;counter:5|c|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>116&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>117&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>118&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>119&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		// =-=-=-=- TIMER -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>120&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>121&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>122&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer()</span></pre></td></tr>
+<tr><td class='num'>123&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>124&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>125&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>126&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:5|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>127&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>128&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>129&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>130&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_double()</span></pre></td></tr>
+<tr><td class='num'>131&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>132&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>133&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,double&gt;(&quot;timer&quot;, 5.5);</span></pre></td></tr>
+<tr><td class='num'>134&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:5.5|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>135&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>136&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>137&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>138&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_with_tags()</span></pre></td></tr>
+<tr><td class='num'>139&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>140&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>141&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 5, tags: new[] {&quot;tag1:true&quot;});</span></pre></td></tr>
+<tr><td class='num'>142&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:5|ms|#tag1:true&quot;));</span></pre></td></tr>
+<tr><td class='num'>143&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>144&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>145&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>146&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>147&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>148&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>149&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 5, sampleRate: 0.5);</span></pre></td></tr>
+<tr><td class='num'>150&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:5|ms|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>151&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>152&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>153&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>154&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>155&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>156&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>157&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>158&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:5|ms|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>159&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>160&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>161&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		[Test]</span></pre></td></tr>
+<tr><td class='num'>162&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		public void send_timer_exception_fails_silently()</span></pre></td></tr>
+<tr><td class='num'>163&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		{</span></pre></td></tr>
+<tr><td class='num'>164&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			udp.Stub(x =&gt; x.Send(Arg&lt;string&gt;.Is.Anything)).Throw(new Exception());</span></pre></td></tr>
+<tr><td class='num'>165&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Statsd s = new Statsd(udp);</span></pre></td></tr>
+<tr><td class='num'>166&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>167&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Assert.Pass();</span></pre></td></tr>
+<tr><td class='num'>168&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		}</span></pre></td></tr>
+<tr><td class='num'>169&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>170&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		[Test]</span></pre></td></tr>
+<tr><td class='num'>171&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		public void send_timer_with_lambda()</span></pre></td></tr>
+<tr><td class='num'>172&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		{</span></pre></td></tr>
+<tr><td class='num'>173&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>174&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>175&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>176&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			_stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>177&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>178&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>179&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			s.Send(() =&gt; testMethod(), statName);</span></pre></td></tr>
+<tr><td class='num'>180&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>181&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			udp.AssertWasCalled(x =&gt; x.Send(&quot;name:500|ms&quot;));       </span></pre></td></tr>
+<tr><td class='num'>182&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		}</span></pre></td></tr>
+<tr><td class='num'>183&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>184&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>185&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_with_lambda_and_tags()</span></pre></td></tr>
+<tr><td class='num'>186&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>187&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>188&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>189&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>190&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>191&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>192&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>193&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(() =&gt; testMethod(), statName, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>194&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>195&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;name:500|ms|#tag1:true,tag2&quot;));       </span></pre></td></tr>
+<tr><td class='num'>196&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>197&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>198&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>199&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_with_lambda_and_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>200&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>201&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>202&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>203&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>204&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>205&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>206&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>207&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(() =&gt; testMethod(), statName, sampleRate: 1.1);</span></pre></td></tr>
+<tr><td class='num'>208&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>209&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;name:500|ms|@1.1&quot;));       </span></pre></td></tr>
+<tr><td class='num'>210&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>211&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>212&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>213&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_timer_with_lambda_and_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>214&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>215&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>216&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>217&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>218&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>219&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>220&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>221&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(() =&gt; testMethod(), statName, sampleRate: 1.1, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>222&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>223&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;name:500|ms|@1.1|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>224&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>225&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>226&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		[Test]</span></pre></td></tr>
+<tr><td class='num'>227&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		public void send_timer_with_lamba_still_records_on_error_and_still_bubbles_up_exception()</span></pre></td></tr>
+<tr><td class='num'>228&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		{</span></pre></td></tr>
+<tr><td class='num'>229&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>230&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			var stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>231&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>232&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			_stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>233&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>234&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			var s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>235&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Assert.Throws&lt;InvalidOperationException&gt;(() =&gt; s.Send(() =&gt; { throw new InvalidOperationException(); }, statName));</span></pre></td></tr>
+<tr><td class='num'>236&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>237&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			udp.AssertWasCalled(x =&gt; x.Send(&quot;name:500|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>238&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		}</span></pre></td></tr>
+<tr><td class='num'>239&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>240&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		[Test]</span></pre></td></tr>
+<tr><td class='num'>241&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		public void send_timer_with_lambda_set_return_value_with()</span></pre></td></tr>
+<tr><td class='num'>242&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		{</span></pre></td></tr>
+<tr><td class='num'>243&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>244&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>245&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>246&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			_stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>247&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>248&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>249&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			int returnValue = 0;</span></pre></td></tr>
+<tr><td class='num'>250&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			s.Send(() =&gt; returnValue = testMethod(), statName);</span></pre></td></tr>
+<tr><td class='num'>251&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>252&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			udp.AssertWasCalled(x =&gt; x.Send(&quot;name:500|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>253&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>			Assert.That(returnValue,Is.EqualTo(5));</span></pre></td></tr>
+<tr><td class='num'>254&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		}</span></pre></td></tr>
+<tr><td class='num'>255&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>256&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>257&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_timer_with_lamba()</span></pre></td></tr>
+<tr><td class='num'>258&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>259&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>260&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>261&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>262&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>263&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>264&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>265&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>266&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add(() =&gt; testMethod(), statName);</span></pre></td></tr>
+<tr><td class='num'>267&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>268&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>269&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;name:500|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>270&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>271&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>272&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>273&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_timer_with_lamba_and_tags()</span></pre></td></tr>
+<tr><td class='num'>274&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>275&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>276&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>277&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>278&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>279&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>280&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>281&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>282&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add(() =&gt; testMethod(), statName, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>283&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>284&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>285&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;name:500|ms|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>286&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>287&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>288&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>289&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_timer_with_lamba_and_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>290&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>291&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>292&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>293&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            IStopwatch stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>294&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>295&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>296&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>297&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>298&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add(() =&gt; testMethod(), statName, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>299&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>300&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>301&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;name:500|ms|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>302&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>303&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>304&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>305&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_timer_with_lamba_still_records_on_error_and_still_bubbles_up_exception()</span></pre></td></tr>
+<tr><td class='num'>306&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>307&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            const string statName = &quot;name&quot;;</span></pre></td></tr>
+<tr><td class='num'>308&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>309&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var stopwatch = MockRepository.GenerateMock&lt;IStopwatch&gt;();</span></pre></td></tr>
+<tr><td class='num'>310&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            stopwatch.Stub(x =&gt; x.ElapsedMilliseconds()).Return(500);</span></pre></td></tr>
+<tr><td class='num'>311&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            _stopwatch.Stub(x =&gt; x.Get()).Return(stopwatch);</span></pre></td></tr>
+<tr><td class='num'>312&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>313&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>314&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>315&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.Throws&lt;InvalidOperationException&gt;(() =&gt; s.Add(() =&gt; { throw new InvalidOperationException(); }, statName));</span></pre></td></tr>
+<tr><td class='num'>316&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>317&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>318&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;name:500|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>319&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>320&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>321&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		// =-=-=-=- GAUGE -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>322&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		</span></pre></td></tr>
+<tr><td class='num'>323&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>324&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge()</span></pre></td></tr>
+<tr><td class='num'>325&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>326&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>327&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>328&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;gauge:5|g&quot;));</span></pre></td></tr>
+<tr><td class='num'>329&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>330&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>331&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>332&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge_with_double()</span></pre></td></tr>
+<tr><td class='num'>333&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>334&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>335&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,double&gt;(&quot;gauge&quot;, 4.2);</span></pre></td></tr>
+<tr><td class='num'>336&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;gauge:4.2|g&quot;));</span></pre></td></tr>
+<tr><td class='num'>337&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>338&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>339&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>340&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge_with_tags()</span></pre></td></tr>
+<tr><td class='num'>341&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>342&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>343&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>344&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;gauge:5|g|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>345&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>346&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>347&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>348&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>349&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>350&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>351&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>352&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, sampleRate: 0.5);</span></pre></td></tr>
+<tr><td class='num'>353&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;gauge:5|g|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>354&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>355&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>356&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>357&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>358&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>359&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>360&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>361&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;gauge:5|g|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>362&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>363&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>364&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>365&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge_with_sample_rate_and_tags_double()</span></pre></td></tr>
+<tr><td class='num'>366&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>367&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>368&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,double&gt;(&quot;gauge&quot;, 5.4, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>369&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;gauge:5.4|g|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>370&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>371&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>372&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>373&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_gauge_exception_fails_silently()</span></pre></td></tr>
+<tr><td class='num'>374&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>375&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.Stub(x =&gt; x.Send(Arg&lt;string&gt;.Is.Anything)).Throw(new Exception());</span></pre></td></tr>
+<tr><td class='num'>376&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp);</span></pre></td></tr>
+<tr><td class='num'>377&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>378&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.Pass();</span></pre></td></tr>
+<tr><td class='num'>379&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>380&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>381&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>382&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_gauge()</span></pre></td></tr>
+<tr><td class='num'>383&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>384&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>385&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>386&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>387&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>388&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;gauge:5|g&quot;));</span></pre></td></tr>
+<tr><td class='num'>389&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>390&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>391&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>392&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_gauge_double()</span></pre></td></tr>
+<tr><td class='num'>393&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>394&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>395&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Gauge,double&gt;(&quot;gauge&quot;, 5.3);</span></pre></td></tr>
+<tr><td class='num'>396&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>397&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>398&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;gauge:5.3|g&quot;));</span></pre></td></tr>
+<tr><td class='num'>399&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>400&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>401&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>402&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_gauge_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>403&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>404&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>405&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, sampleRate: 0.5);</span></pre></td></tr>
+<tr><td class='num'>406&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>407&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>408&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;gauge:5|g|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>409&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>410&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>411&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>412&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_gauge_with_tags()</span></pre></td></tr>
+<tr><td class='num'>413&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>414&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>415&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>416&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>417&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>418&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;gauge:5|g|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>419&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>420&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>421&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>422&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>423&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_gauge_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>424&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>425&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>426&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>427&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>428&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>429&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;gauge:5|g|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>430&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>431&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>432&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>433&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_gauge_with_sample_rate_and_tags_double()</span></pre></td></tr>
+<tr><td class='num'>434&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>435&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>436&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Gauge,int&gt;(&quot;gauge&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>437&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>438&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>439&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;gauge:5|g|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>440&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>441&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		</span></pre></td></tr>
+<tr><td class='num'>442&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>		// =-=-=-=- COMBINATION -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>443&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>444&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>445&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_one_gauge_shows_in_commands()</span></pre></td></tr>
+<tr><td class='num'>446&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>447&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>448&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 1, 0.1);</span></pre></td></tr>
+<tr><td class='num'>449&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>450&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>451&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(2));</span></pre></td></tr>
+<tr><td class='num'>452&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;counter:1|c|@0.1&quot;));</span></pre></td></tr>
+<tr><td class='num'>453&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[1], Is.EqualTo(&quot;timer:1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>454&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>455&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>456&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>457&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_one_gauge_with_no_sample_rate_shows_in_commands()</span></pre></td></tr>
+<tr><td class='num'>458&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>459&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>460&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>461&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>462&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>463&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(2));</span></pre></td></tr>
+<tr><td class='num'>464&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;counter:1|c&quot;));</span></pre></td></tr>
+<tr><td class='num'>465&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[1], Is.EqualTo(&quot;timer:1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>466&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>467&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>468&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>469&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_one_gauge_sends_in_one_go()</span></pre></td></tr>
+<tr><td class='num'>470&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>471&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>472&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 1, 0.1);</span></pre></td></tr>
+<tr><td class='num'>473&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>474&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send();</span></pre></td></tr>
+<tr><td class='num'>475&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>476&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;counter:1|c|@0.1\ntimer:1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>477&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>478&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>479&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>480&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>481&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_one_gauge_sends_and_removes_commands()</span></pre></td></tr>
+<tr><td class='num'>482&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>483&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>484&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 1, 0.1);</span></pre></td></tr>
+<tr><td class='num'>485&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>486&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send();</span></pre></td></tr>
+<tr><td class='num'>487&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>488&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(0));</span></pre></td></tr>
+<tr><td class='num'>489&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>490&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>491&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>492&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_send_one_gauge_sends_only_sends_the_last_and_clears_queue()</span></pre></td></tr>
+<tr><td class='num'>493&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>494&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>495&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>496&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>497&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>498&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>499&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>500&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send();</span></pre></td></tr>
+<tr><td class='num'>501&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>502&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasNotCalled(x =&gt; x.Send(&quot;counter:1|c&quot;));</span></pre></td></tr>
+<tr><td class='num'>503&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>504&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>505&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>506&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_send_one_gauge_sends_only_sends_the_last_one_double()</span></pre></td></tr>
+<tr><td class='num'>507&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>508&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>509&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,double&gt;(&quot;counter&quot;, 1.1);</span></pre></td></tr>
+<tr><td class='num'>510&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>511&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>512&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>513&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>514&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>515&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>516&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_one_counter_and_send_one_gauge_sends_only_sends_the_last_two_doubles()</span></pre></td></tr>
+<tr><td class='num'>517&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>518&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>519&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,double&gt;(&quot;counter&quot;, 1.1);</span></pre></td></tr>
+<tr><td class='num'>520&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Timing,double&gt;(&quot;timer&quot;, 1.1);</span></pre></td></tr>
+<tr><td class='num'>521&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>522&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;timer:1.1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>523&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>524&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>525&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // =-=-=-=- EVENT -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>526&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        //Event(string title, string text, string alertType = null, string aggregationKey = null, string sourceType = null, int? dateHappened = null, string priority = null, string hostname = null, string[] tags = null)</span></pre></td></tr>
+<tr><td class='num'>527&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>528&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>529&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event()</span></pre></td></tr>
+<tr><td class='num'>530&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>531&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>532&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;);</span></pre></td></tr>
+<tr><td class='num'>533&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text&quot;));</span></pre></td></tr>
+<tr><td class='num'>534&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>535&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>536&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>537&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_alertType()</span></pre></td></tr>
+<tr><td class='num'>538&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>539&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>540&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, alertType:&quot;warning&quot;);</span></pre></td></tr>
+<tr><td class='num'>541&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|t:warning&quot;));</span></pre></td></tr>
+<tr><td class='num'>542&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>543&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>544&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>545&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_aggregationKey()</span></pre></td></tr>
+<tr><td class='num'>546&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>547&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>548&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, aggregationKey: &quot;key&quot;);</span></pre></td></tr>
+<tr><td class='num'>549&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|k:key&quot;));</span></pre></td></tr>
+<tr><td class='num'>550&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>551&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>552&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>553&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_sourceType()</span></pre></td></tr>
+<tr><td class='num'>554&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>555&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>556&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, sourceType: &quot;source&quot;);</span></pre></td></tr>
+<tr><td class='num'>557&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|s:source&quot;));</span></pre></td></tr>
+<tr><td class='num'>558&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>559&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>560&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>561&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_dateHappened()</span></pre></td></tr>
+<tr><td class='num'>562&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>563&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>564&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, dateHappened: 123456);</span></pre></td></tr>
+<tr><td class='num'>565&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|d:123456&quot;));</span></pre></td></tr>
+<tr><td class='num'>566&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>567&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>568&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>569&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_priority()</span></pre></td></tr>
+<tr><td class='num'>570&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>571&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>572&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, priority: &quot;low&quot;);</span></pre></td></tr>
+<tr><td class='num'>573&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|p:low&quot;));</span></pre></td></tr>
+<tr><td class='num'>574&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>575&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>576&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>577&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_hostname()</span></pre></td></tr>
+<tr><td class='num'>578&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>579&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>580&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, hostname: &quot;hostname&quot;);</span></pre></td></tr>
+<tr><td class='num'>581&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|h:hostname&quot;));</span></pre></td></tr>
+<tr><td class='num'>582&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>583&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>584&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>585&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_tags()</span></pre></td></tr>
+<tr><td class='num'>586&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>587&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>588&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, &quot;text&quot;, tags: new[] { &quot;tag1&quot;, &quot;tag2&quot; });</span></pre></td></tr>
+<tr><td class='num'>589&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;_e{5,4}:title|text|#tag1,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>590&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>591&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>592&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>593&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_message_that_is_too_long()</span></pre></td></tr>
+<tr><td class='num'>594&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>595&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>596&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>597&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var length = 8 * 1024 - 16; //16 is the number of characters in the final message that is not the title</span></pre></td></tr>
+<tr><td class='num'>598&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var builder = BuildLongString(length);</span></pre></td></tr>
+<tr><td class='num'>599&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var title = builder;</span></pre></td></tr>
+<tr><td class='num'>600&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>601&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var exception = Assert.Throws&lt;Exception&gt;(() =&gt; s.Send(title + &quot;x&quot;, &quot;text&quot;));</span></pre></td></tr>
+<tr><td class='num'>602&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(exception.Message, Contains.Substring(&quot;payload is too big&quot;));</span></pre></td></tr>
+<tr><td class='num'>603&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>604&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>605&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>606&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_truncation_for_title_that_is_too_long()</span></pre></td></tr>
+<tr><td class='num'>607&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>608&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>609&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>610&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var length = 8 * 1024 - 16; //16 is the number of characters in the final message that is not the title</span></pre></td></tr>
+<tr><td class='num'>611&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var builder = BuildLongString(length);</span></pre></td></tr>
+<tr><td class='num'>612&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var title = builder;</span></pre></td></tr>
+<tr><td class='num'>613&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>614&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(title + &quot;x&quot;, &quot;text&quot;, truncateIfTooLong: true);</span></pre></td></tr>
+<tr><td class='num'>615&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var expected = string.Format(&quot;_e{{{0},4}}:{1}|text&quot;, length, title);</span></pre></td></tr>
+<tr><td class='num'>616&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(expected));</span></pre></td></tr>
+<tr><td class='num'>617&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>618&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>619&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>620&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_event_with_truncation_for_text_that_is_too_long()</span></pre></td></tr>
+<tr><td class='num'>621&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>622&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>623&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>624&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var length = 8 * 1024 - 17; //17 is the number of characters in the final message that is not the text</span></pre></td></tr>
+<tr><td class='num'>625&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var builder = BuildLongString(length);</span></pre></td></tr>
+<tr><td class='num'>626&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var text = builder;</span></pre></td></tr>
+<tr><td class='num'>627&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>628&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send(&quot;title&quot;, text + &quot;x&quot;, truncateIfTooLong: true);</span></pre></td></tr>
+<tr><td class='num'>629&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var expected = string.Format(&quot;_e{{5,{0}}}:title|{1}&quot;, length, text);</span></pre></td></tr>
+<tr><td class='num'>630&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(expected));</span></pre></td></tr>
+<tr><td class='num'>631&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>632&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>633&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private static string BuildLongString(int length)</span></pre></td></tr>
+<tr><td class='num'>634&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>635&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            var builder = new StringBuilder();</span></pre></td></tr>
+<tr><td class='num'>636&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            for (int i = 0; i &lt; length; i++)</span></pre></td></tr>
+<tr><td class='num'>637&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>                builder.Append(i % 10);</span></pre></td></tr>
+<tr><td class='num'>638&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            return builder.ToString();</span></pre></td></tr>
+<tr><td class='num'>639&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>640&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>641&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // =-=-=-=- PREFIX -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>642&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>643&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>644&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void set_prefix_on_stats_name_when_calling_send()</span></pre></td></tr>
+<tr><td class='num'>645&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>646&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch, &quot;a.prefix.&quot;);</span></pre></td></tr>
+<tr><td class='num'>647&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>648&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>649&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>650&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;a.prefix.counter:5|c&quot;), x =&gt; x.Repeat.Twice());</span></pre></td></tr>
+<tr><td class='num'>651&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>652&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>653&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>654&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_counter_sets_prefix_on_name()</span></pre></td></tr>
+<tr><td class='num'>655&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>656&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch, &quot;another.prefix.&quot;);</span></pre></td></tr>
+<tr><td class='num'>657&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>658&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Counting,int&gt;(&quot;counter&quot;, 1, sampleRate: 0.1);</span></pre></td></tr>
+<tr><td class='num'>659&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Timing,int&gt;(&quot;timer&quot;, 1);</span></pre></td></tr>
+<tr><td class='num'>660&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send();</span></pre></td></tr>
+<tr><td class='num'>661&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>662&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send(&quot;another.prefix.counter:1|c|@0.1\nanother.prefix.timer:1|ms&quot;));</span></pre></td></tr>
+<tr><td class='num'>663&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>664&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>665&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        private int testMethod()</span></pre></td></tr>
+<tr><td class='num'>666&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>667&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            return 5;</span></pre></td></tr>
+<tr><td class='num'>668&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>669&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>670&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // DOGSTATSD-SPECIFIC</span></pre></td></tr>
+<tr><td class='num'>671&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>672&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // =-=-=-=- HISTOGRAM -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>673&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>674&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_histogram()</span></pre></td></tr>
+<tr><td class='num'>675&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>676&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>677&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Histogram,int&gt; (&quot;histogram&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>678&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send (&quot;histogram:5|h&quot;));</span></pre></td></tr>
+<tr><td class='num'>679&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>680&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>681&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>682&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_histogram_double()</span></pre></td></tr>
+<tr><td class='num'>683&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>684&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>685&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Histogram,double&gt; (&quot;histogram&quot;, 5.3);</span></pre></td></tr>
+<tr><td class='num'>686&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send (&quot;histogram:5.3|h&quot;));</span></pre></td></tr>
+<tr><td class='num'>687&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>688&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>689&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>690&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_histogram_with_tags()</span></pre></td></tr>
+<tr><td class='num'>691&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>692&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>693&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>694&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send (&quot;histogram:5|h|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>695&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>696&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>697&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>698&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_histogram_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>699&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>700&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>701&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5, sampleRate: 0.5);</span></pre></td></tr>
+<tr><td class='num'>702&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send (&quot;histogram:5|h|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>703&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>704&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>705&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>706&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_histogram_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>707&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>708&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>709&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>710&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled(x =&gt; x.Send (&quot;histogram:5|h|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>711&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>712&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>713&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>714&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_histogram()</span></pre></td></tr>
+<tr><td class='num'>715&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>716&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>717&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>718&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>719&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>720&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;histogram:5|h&quot;));</span></pre></td></tr>
+<tr><td class='num'>721&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>722&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>723&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>724&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_histogram_double()</span></pre></td></tr>
+<tr><td class='num'>725&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>726&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>727&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Histogram,double&gt;(&quot;histogram&quot;, 5.3);</span></pre></td></tr>
+<tr><td class='num'>728&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>729&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>730&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;histogram:5.3|h&quot;));</span></pre></td></tr>
+<tr><td class='num'>731&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>732&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>733&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>734&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_histogram_with_tags()</span></pre></td></tr>
+<tr><td class='num'>735&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>736&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>737&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>738&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>739&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>740&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;histogram:5|h|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>741&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>742&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>743&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        </span></pre></td></tr>
+<tr><td class='num'>744&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>745&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_histogram_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>746&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>747&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>748&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5, 0.5);</span></pre></td></tr>
+<tr><td class='num'>749&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>750&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>751&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;histogram:5|h|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>752&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>753&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>754&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>755&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_histogram_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>756&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>757&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>758&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Histogram,int&gt;(&quot;histogram&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>759&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>760&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>761&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;histogram:5|h|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>762&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>763&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>764&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        // =-=-=-=- SET -=-=-=-=</span></pre></td></tr>
+<tr><td class='num'>765&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>766&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_set()</span></pre></td></tr>
+<tr><td class='num'>767&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>768&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>769&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Set,int&gt;(&quot;set&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>770&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send(&quot;set:5|s&quot;));</span></pre></td></tr>
+<tr><td class='num'>771&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>772&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>773&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>774&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_set_string()</span></pre></td></tr>
+<tr><td class='num'>775&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>776&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>777&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Set,string&gt;(&quot;set&quot;, &quot;objectname&quot;);</span></pre></td></tr>
+<tr><td class='num'>778&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send(&quot;set:objectname|s&quot;));</span></pre></td></tr>
+<tr><td class='num'>779&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>780&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>781&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>782&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_set_with_tags()</span></pre></td></tr>
+<tr><td class='num'>783&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>784&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd (udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>785&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Set,int&gt; (&quot;set&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>786&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send(&quot;set:5|s|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>787&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>788&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>789&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>790&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_set_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>791&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>792&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>793&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Set,int&gt;(&quot;set&quot;, 5, sampleRate: 0.1);</span></pre></td></tr>
+<tr><td class='num'>794&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send(&quot;set:5|s|@0.1&quot;));</span></pre></td></tr>
+<tr><td class='num'>795&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>796&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>797&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>798&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_set_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>799&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>800&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd (udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>801&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Set,int&gt; (&quot;set&quot;, 5, sampleRate: 0.1, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>802&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send(&quot;set:5|s|@0.1|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>803&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>804&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>805&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>806&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void send_set_string_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>807&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>808&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>809&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Send&lt;Statsd.Set,string&gt;(&quot;set&quot;, &quot;objectname&quot;, sampleRate: 0.1, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>810&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            udp.AssertWasCalled (x =&gt; x.Send(&quot;set:objectname|s|@0.1|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>811&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>812&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>813&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>814&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>815&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_set()</span></pre></td></tr>
+<tr><td class='num'>816&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>817&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>818&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Set,int&gt;(&quot;set&quot;, 5);</span></pre></td></tr>
+<tr><td class='num'>819&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>820&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>821&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;set:5|s&quot;));</span></pre></td></tr>
+<tr><td class='num'>822&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>823&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>824&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>825&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_set_string()</span></pre></td></tr>
+<tr><td class='num'>826&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>827&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>828&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Set,string&gt;(&quot;set&quot;, &quot;string&quot;);</span></pre></td></tr>
+<tr><td class='num'>829&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>830&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>831&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;set:string|s&quot;));</span></pre></td></tr>
+<tr><td class='num'>832&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>833&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>834&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>835&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_set_with_tags()</span></pre></td></tr>
+<tr><td class='num'>836&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>837&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>838&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Set,int&gt;(&quot;set&quot;, 5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>839&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>840&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>841&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;set:5|s|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>842&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>843&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>844&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>845&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_set_with_sample_rate()</span></pre></td></tr>
+<tr><td class='num'>846&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>847&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>848&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Set,int&gt;(&quot;set&quot;, 5, sampleRate: 0.5);</span></pre></td></tr>
+<tr><td class='num'>849&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>850&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>851&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;set:5|s|@0.5&quot;));</span></pre></td></tr>
+<tr><td class='num'>852&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>853&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>854&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>855&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_set_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>856&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>857&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>858&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Set,int&gt;(&quot;set&quot;, 5, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>859&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>860&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>861&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;set:5|s|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>862&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>863&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>864&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        [Test]</span></pre></td></tr>
+<tr><td class='num'>865&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        public void add_set_string_with_sample_rate_and_tags()</span></pre></td></tr>
+<tr><td class='num'>866&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        {</span></pre></td></tr>
+<tr><td class='num'>867&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Statsd s = new Statsd(udp, _randomGenerator, _stopwatch);</span></pre></td></tr>
+<tr><td class='num'>868&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            s.Add&lt;Statsd.Set,string&gt;(&quot;set&quot;, &quot;string&quot;, sampleRate: 0.5, tags: new[] {&quot;tag1:true&quot;, &quot;tag2&quot;});</span></pre></td></tr>
+<tr><td class='num'>869&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'></span></pre></td></tr>
+<tr><td class='num'>870&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands.Count, Is.EqualTo(1));</span></pre></td></tr>
+<tr><td class='num'>871&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>            Assert.That(s.Commands[0], Is.EqualTo(&quot;set:string|s|@0.5|#tag1:true,tag2&quot;));</span></pre></td></tr>
+<tr><td class='num'>872&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>        }</span></pre></td></tr>
+<tr><td class='num'>873&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>    }</span></pre></td></tr>
+<tr><td class='num'>874&nbsp;</td><td class='num'>&nbsp;&nbsp;</td><td><pre><span class='code'>}</span></pre></td></tr>
+</table>
+</body>

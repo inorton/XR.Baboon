@@ -80,5 +80,22 @@ Results
 ========
 
 Looking at results is fairly easy, Once your program has ended ( or after every 2 minutes, or 
-after sending it _SIGUSR2_ ) you will find a new file called '`myserver.exe.covdb`' simply launch
-the cov-gtk app and load this file using the open button and you'll see coverage data as above.
+after sending it _SIGUSR2_ ) you will find a new file called '`myserver.exe.covdb`' simply launch00
+the `cov-gtk` app and load this file using the open button and you'll see coverage data as above.
+
+`cov-html` generates an HTML summary report of coverage per class and method. Usage:
+```
+covtool/bin/cov-html.exe COVDB_FILE REPORT_TITLE
+```
+Report is written to `html/index.html`.
+
+`cov-srchtml` generates HTML pages with source code coloured and annotated by coverage status, with
+a tree view for navigation. Usage:
+```
+covtool/bin/cov-srchtml.exe COVDB_FILE SRC_PATH OUTPUT_PATH
+```
+Open `OUTPUT_PATH/index.html`.
+
+![screenshot](https://raw.github.com/nearmap/XR.Baboon/colourised-source/screenshots/cov-srchtml.png "cov-srchtml report screenshot")
+
+[Example report](cov-srchtml/example/index.html).
