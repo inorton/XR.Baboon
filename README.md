@@ -96,6 +96,5 @@ covtool/bin/cov-srchtml.exe COVDB_FILE SRC_PATH OUTPUT_PATH
 ```
 Open `OUTPUT_PATH/index.html`.
 
-![screenshot](https://raw.github.com/nearmap/XR.Baboon/colourised-source/screenshots/cov-srchtml.png "cov-srchtml report screenshot")
-
-[Example report](cov-srchtml/example/index.html).
+This is a screenshot of `cov-srchtml`'s output showing test coverage for a version of [dogstatsd-csharp-client](https://github.com/DataDog/dogstatsd-csharp-client):
+![screenshot](https://raw.github.com/nearmap/XR.Baboon/colourised-source/screenshots/cov-srchtml.png "cov-srchtml output screenshot")
