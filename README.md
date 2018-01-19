@@ -79,8 +79,8 @@ And baboon will start the program and start recording coverage data.
 Results
 ========
 
-Looking at results is fairly easy, Once your program has ended ( or after every 2 minutes, or 
-after sending it _SIGUSR2_ ) you will find a new file called '`myserver.exe.covdb`' simply launch00
+Looking at results is fairly easy. Once your program has ended ( or after every 2 minutes, or 
+after sending it _SIGUSR2_ ) you will find a new file called '`myserver.exe.covdb`'. Launch
 the `cov-gtk` app and load this file using the open button and you'll see coverage data as above.
 
 `cov-html` generates an HTML summary report of coverage per class and method. Usage:
