@@ -45,7 +45,7 @@ namespace covhtml
                 lines += x.GetLines().Length;
                 hits += x.GetHits();
             }
-            return (int)Math.Round((100.0 * hits/lines));
+            return lines == 0 ? 0 : (int)Math.Round((100.0 * hits/lines));
         }
 
         public int GetCoverage( CodeRecord rec )
