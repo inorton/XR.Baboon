@@ -391,7 +391,7 @@ namespace XR.Mono.Cover
             using (var f = new StreamWriter( filename )) {
                 var rv = records.Values.ToArray ();
                 Array.Sort (rv, (CodeRecord x, CodeRecord y) => {
-                    var xa = string.Format (x.ClassName + "\t:" + x.Name);
+                    var xa = string.Format (x.ClassName + ":" + x.Name);
                     var ya = string.Format (y.ClassName + ":" + y.Name);
 
                     return xa.CompareTo (ya);
