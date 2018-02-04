@@ -103,14 +103,21 @@ of a type name like so:
                 cfgfile = env;
             }
 
+            bool hitCount = true;
             if ( File.Exists( cfgfile ) ) {
                 using ( var f = File.OpenText( cfgfile ) ) {
                     string l = null;
                     do {
                         l = f.ReadLine();
-                        if ( !string.IsNullOrWhiteSpace( l ) ) {
-                            patterns.Add(l);
+                        if ( string.IsNullOrWhiteSpace( l ) ) {
+                            continue;
                         }
+                        if (l.StartsWith ( "!HitCount=" ) ) {
+                            l = l.Substring("!HitCount=".Length);
+                            bool.TryParse (l, out hitCount);
+                            continue;
+                        }
+                        patterns.Add (l);
                     } while ( l != null );
                 }
             }
@@ -123,7 +130,8 @@ of a type name like so:
             debugee = covertool.VirtualMachine.Process;
             ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
             ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );
-			covertool.Cover (patterns.ToArray ());
+            covertool.HitCount = hitCount;
+            covertool.Cover (patterns.ToArray ());
             covertool.Report ( cfgfile + ".covreport" );
 
             return covertool.VirtualMachine.Process.ExitCode;

@@ -31,6 +31,8 @@ namespace XR.Mono.Cover
 
         public CodeRecordData DataStore { get; set; }
 
+        public bool HitCount { get; set; } = true;
+
 
         long logcount = 0;
 
@@ -238,6 +240,10 @@ namespace XR.Mono.Cover
                     
                         if ( bp.Location.LineNumber == bp.Record.GetFirstLine() ) {
                             rec.CallCount++;
+                        }
+
+                        if (!HitCount) {
+							bpe.Request.Disable ();
                         }
                     }
 
