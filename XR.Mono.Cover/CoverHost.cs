@@ -327,9 +327,11 @@ namespace XR.Mono.Cover
                     f.Write (ex.ToString ());
                 }
             } finally {
-
-                if ( !VirtualMachine.Process.HasExited )
-                    VirtualMachine.Process.Kill();
+                if ( !VirtualMachine.Process.HasExited && !VirtualMachine.Process.WaitForExit (10000) )
+                {
+                    Log ("vm still running, kill now");
+					VirtualMachine.Process.Kill();
+                }
 
                 Log("saving data");
 
