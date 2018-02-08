@@ -41,6 +41,11 @@ of a type name like so:
 ^MyProject.Program
 ^XR.HttpFileStream
 
+Generating simple line coverage information instead of hit counting
+can be enabled in the configuration file like this:
+
+$HitCount=false
+
 
 ");
             Console.WriteLine();
@@ -112,8 +117,8 @@ of a type name like so:
                         if ( string.IsNullOrWhiteSpace( l ) ) {
                             continue;
                         }
-                        if (l.StartsWith ( "!HitCount=" ) ) {
-                            l = l.Substring("!HitCount=".Length);
+                        if (l.StartsWith ( "$HitCount=" ) ) {
+                            l = l.Substring("$HitCount=".Length);
                             bool.TryParse (l, out hitCount);
                             continue;
                         }

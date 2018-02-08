@@ -243,7 +243,7 @@ namespace XR.Mono.Cover
                         }
 
                         if (!HitCount) {
-							bpe.Request.Disable ();
+                            bpe.Request.Disable ();
                         }
                     }
 

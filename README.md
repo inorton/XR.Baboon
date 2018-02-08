@@ -76,6 +76,11 @@ or exe) atthe start of the line. Eg,
 
 And baboon will start the program and start recording coverage data.
 
+If you are only interested in line coverage without hit counts you can add the following line to the
+config file. This will increase performance significantly.
+
+`$HitCount=false`
+
 Results
 ========
 
