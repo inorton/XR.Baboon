@@ -58,7 +58,7 @@ Installing
 -----------
 You can use the included Makefile to install baboon under Linux. 
 
-Use `make install` to install without using make_bundle (see above).
+Use `make install` to install without using `make_bundle.sh` (see above).
 Use `make installbundle` for installing the bundled version.
 
 Running
