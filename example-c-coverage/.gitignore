@@ -1,0 +1,5 @@
+*.o
+program
+*.gcda
+*.gcno
+*.gcov
