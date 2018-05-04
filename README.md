@@ -1,10 +1,17 @@
-XR.Mono.Cover (c) 2013 Ian Norton
+XR.Mono.Cover (c) 2013-2018 Ian Norton
 ==================================
 
 About
 ------
 
-XR.Mono.Cover is a simple code coverage tool specifically for mono. 
+Baboon is a project about code coverage. For recording and displaying the line-by-line coverage of CLR programs 
+running with `mono` and and also now displaying coverage data for C/C++ applications built by gcc with `-fcoverage`
+
+Baboon contains three tools: `covem` and `cov-gtk` and `cov-html`
+
+`cov-gtk` and `cov-html` are reporting tools that understand the data recorded by `covem` and by `gcov`
+
+`covem` is a simple code coverage tool originally for mono. 
 It will record which lines of your source are actually executed and 
 log some basic statistics like call counts and the number of times 
 a line is actually run.
