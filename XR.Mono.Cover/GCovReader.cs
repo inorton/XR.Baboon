@@ -41,7 +41,7 @@ namespace XR.Mono.Cover
         /// </summary>
         /// <param name="filepath">Filepath.</param>
         public void ScanForNotes(String filepath) {
-            BuildRoot = filepath;
+            BuildRoot = Path.GetFullPath(filepath);
             var files = Directory.GetFiles (filepath, "*.gcno", SearchOption.AllDirectories);
             foreach (string filename in files) {
                 gcfilemaps.Add (filename, null);
@@ -175,14 +175,13 @@ namespace XR.Mono.Cover
                 }
 
                 // make a relative path for the "assembly/class name"
-                var tmpuri = new Uri (BuildRoot);
-                var rel = tmpuri.MakeRelativeUri (new Uri(record.SourceFile));
+                var relpath = GetRelativePath (BuildRoot, record.SourceFile);
 
                 record.Assembly = record.SourceFile;
                 record.Name = Path.GetFileName (record.SourceFile);
-                record.ClassName = Path.GetDirectoryName(rel.ToString ());
+                record.ClassName = Path.GetDirectoryName(relpath);
 
-                record.FullMethodName = rel.ToString ();
+                record.FullMethodName = relpath;
 
                 // add to the data 
                 Records.Add(record);
@@ -193,6 +192,16 @@ namespace XR.Mono.Cover
             int num = -1;
             Int32.TryParse (text, out num);
             return num;
+        }
+
+        public static string GetRelativePath(String first, String second) {
+
+            if (!first.EndsWith (Path.DirectorySeparatorChar.ToString ()))
+                first += Path.DirectorySeparatorChar;
+
+            var tmpuri = new Uri (first);
+            var rel = tmpuri.MakeRelativeUri (new Uri(second));
+            return rel.ToString ();
         }
     }
 }

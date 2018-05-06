@@ -50,7 +50,7 @@ namespace covsrchtml
             CodeRecordData coverageData = null;
             if (gcovMode) {
                 var scanner = new GCovReader ();
-                scanner.Scan (args [1]);
+                scanner.Scan (Path.GetFullPath(args [1]));
                 scanner.ProcessGCovData ();
                 codeRecords = scanner.Records;
             } else {
@@ -171,43 +171,43 @@ $('#jstree').on('changed.jstree', function (e, data) {
                 filemask = "*.*";
             }
 
-            var srcFiles = Directory.GetFiles (srcDir, filemask, SearchOption.AllDirectories);
+            var srcFiles = Directory.GetFiles (srcDir + Path.DirectorySeparatorChar, filemask, SearchOption.AllDirectories);
 
             foreach (var srcFile in srcFiles)
             {
                 var srcFileInfo = new FileInfo(srcFile);
                 var srcFileName = srcFileInfo.FullName;
                 var dirName = srcFileInfo.Directory.FullName;
+                var basename = Path.GetFileName (srcFileName);
+
+                var relpath = GCovReader.GetRelativePath (srcDir, srcFileInfo.FullName);
+                var reldir = Path.GetDirectoryName (relpath);
 
                 if (!srcFileName.StartsWith(srcDir)
-                    || srcFileName.EndsWith("/Properties/AssemblyInfo.cs")
-                    || dirName.Contains("/obj/"))
+                    || relpath.EndsWith("/Properties/AssemblyInfo.cs")
+                    || relpath.Contains("/obj/"))
                 {
                     continue;
                 }
-
-                var relSrcFile = srcFileName.Substring(srcDir.Length);
-                var relDirName = dirName.Substring(srcDir.Length);
-
-                var covFile = outputDir + relSrcFile + ".html";
+                    
+                var covFile = Path.Combine(outputDir, relpath + ".html");
                 var fileRecords = codeRecordLookup[srcFileName].ToList();
 
                 if (fileRecords.Count > 0 || !gcovMode ) {
 
-                    GenerateCoverageColourisedFile (srcFileName, relSrcFile, covFile, fileRecords);
+                    GenerateCoverageColourisedFile (srcFileName, relpath, covFile, fileRecords);
 
                     var totalLines = fileRecords.SelectMany (x => x.GetLines ()).Distinct ().Count ();
                     var coveredLines = fileRecords.SelectMany (x => x.GetHitCounts ().Keys).Distinct ().Count ();
                     var covPct = totalLines == 0 ? 0 : 100 * coveredLines / totalLines;
 
-                    if (String.IsNullOrEmpty (relDirName)) {
-                        relDirName = "/";
-                    }
+                    reldir = "/" + reldir;
+                    relpath = "/" + relpath;
 
-                    dirNames.Add (relDirName);
+                    dirNames.Add (reldir);
                     fileNodes.Add (String.Format (
                         "{{'id':'{0}','parent':'{1}','text':'{2} ({3}%)'}}",
-                        relSrcFile, relDirName, srcFileInfo.Name, covPct)
+                        relpath, reldir, basename, covPct)
                     .Replace ('\'', '"'));
                 }
             }

@@ -23,7 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Commandlineparameters>--gcov /home/inb/XR.Baboon/example-c-coverage-gmake /home/inb/XR.Baboon/example-c-coverage-gmake/html</Commandlineparameters>
+    <Commandlineparameters>--gcov /home/inb/XR.Baboon/example-c-coverage-cmake /home/inb/XR.Baboon/example-c-coverage-cmake/html</Commandlineparameters>
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
