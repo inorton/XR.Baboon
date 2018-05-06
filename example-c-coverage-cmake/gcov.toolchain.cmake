@@ -1,6 +1,6 @@
 
 set(GCOV_C_FLAGS "--coverage -Wall -Werror -g -O0")
-set(GCOV_LINK_FLAGS "--coverage")
+set(GCOV_LINK_FLAGS "--coverage -g -O0")
 
 set(CMAKE_CXX_FLAGS 
 	"${CMAKE_C_FLAGS} ${GCOV_C_FLAGS}"
