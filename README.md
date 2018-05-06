@@ -102,9 +102,14 @@ covtool/bin/cov-html.exe COVDB_FILE REPORT_TITLE
 Report is written to `html/index.html`.
 
 `cov-srchtml` generates HTML pages with source code coloured and annotated by coverage status, with
-a tree view for navigation. Usage:
+a tree view for navigation. 
+
+Usage:
 ```
-covtool/bin/cov-srchtml.exe COVDB_FILE SRC_PATH OUTPUT_PATH
+cov-srchtml COVDB_FILE SRC_PATH OUTPUT_PATH
+
+cov-srchtml --gcov SRC_PATH OUTPUT_PATH
+
 ```
 Open `OUTPUT_PATH/index.html`.
 
