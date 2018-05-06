@@ -1,9 +1,10 @@
 
-program: test.o
-	gcc -fprofile-arcs -ftest-coverage test.o -o program
 
-test.o: test.c
-	gcc -Wall -fprofile-arcs -ftest-coverage -c test.c
+program: foo/file.o bar/file.o test.o
+	gcc -fprofile-arcs -ftest-coverage -o $@ $^
+
+%.o: %.c
+	gcc -I. -Wall -fprofile-arcs -ftest-coverage -c $< -o $@
 
 clean:
 	rm -f test.o

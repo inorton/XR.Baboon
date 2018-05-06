@@ -1,0 +1,1 @@
+int barfunc(int x);
