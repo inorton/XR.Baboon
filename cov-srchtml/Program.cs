@@ -14,16 +14,31 @@ namespace covsrchtml
     /// </summary>
     internal class Program
     {
+        static bool gcovMode = false;
+
         /// <summary>
         /// usage: cov-srchtml.exe COVERAGEDB SRCDIR OUTPUTDIR
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args)
         {
-            if (args.Length != 3 || !File.Exists(args[0]) || !Directory.Exists(args[1]))
-            {
+            if (args.Contains ("-h") || args.Contains ("--help") || args.Length < 2) {
                 Usage();
                 Environment.Exit(1);
+            }
+
+            if (args [0].Equals ("--gcov")) {
+                gcovMode = true;
+            } else {
+                if (!File.Exists (args [0])) {
+                    Console.Error.WriteLine ("No coverage file: {0}", args [0]);
+                    Environment.Exit (1);
+                }
+            }
+            if (!Directory.Exists(args[1]))
+            {
+                Console.Error.WriteLine ("No source folder: {0}", args [1]);
+                Environment.Exit (1);
             }
 
             var outputDir = args[2];
@@ -31,10 +46,18 @@ namespace covsrchtml
             {
                 Directory.CreateDirectory(outputDir);
             }
-
-            var coverageData = new CodeRecordData();
-            coverageData.Open(args[0]);
-            var codeRecords = coverageData.Load();
+            List <CodeRecord> codeRecords;
+            CodeRecordData coverageData = null;
+            if (gcovMode) {
+                var scanner = new GCovReader ();
+                scanner.Scan (args [1]);
+                scanner.ProcessGCovData ();
+                codeRecords = scanner.Records;
+            } else {
+                coverageData = new CodeRecordData ();
+                coverageData.Open (args [0]);
+                codeRecords = coverageData.Load ();
+            }
 
             var dirNames = new HashSet<string>();
             var fileNodes = new List<string>();
@@ -48,8 +71,10 @@ namespace covsrchtml
             
             GenerateSourceTree(outputDir, CreateDirNodeJson(dirNames), fileNodes);
             GenerateIndex(outputDir);
-            
-            coverageData.Close();
+
+            if (coverageData != null) {
+                coverageData.Close ();
+            }
         }
 
         private static void GenerateIndex(string outputDir)
@@ -81,13 +106,13 @@ namespace covsrchtml
 <html>
 <head>
 <meta charset='utf-8'>
-<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.4/themes/default/style.min.css' />
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css' />
 <style>.nm-code{font-family:sans-serif;font-size:80%;}</style>
 </head>
 <body>
 <div class='nm-code' style='vertical-align:top' id='jstree'></div>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.4/jstree.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/jstree.min.js'></script>
 <script>
   $(function () {
     $('#jstree').jstree({ 'core' : {
@@ -102,9 +127,7 @@ namespace covsrchtml
   });
 $('#jstree').on('changed.jstree', function (e, data) {
   console.log(data.selected);
-  if (data.selected[0].endsWith('.cs')) {
-    parent.sourceFrame.location.href=data.selected[0].substring(1) + '.html';
-  }
+  parent.sourceFrame.location.href=data.selected[0].substring(1) + '.html';  
 });
 </script>
 </body>
@@ -143,9 +166,16 @@ $('#jstree').on('changed.jstree', function (e, data) {
             ISet<string> dirNames,
             ICollection<string> fileNodes)
         {
-            var srcFiles = new DirectoryInfo(srcDir).EnumerateFiles("*.cs", SearchOption.AllDirectories);
-            foreach (var srcFileInfo in srcFiles)
+            var filemask = "*.cs";
+            if (gcovMode) {
+                filemask = "*.*";
+            }
+
+            var srcFiles = Directory.GetFiles (srcDir, filemask, SearchOption.AllDirectories);
+
+            foreach (var srcFile in srcFiles)
             {
+                var srcFileInfo = new FileInfo(srcFile);
                 var srcFileName = srcFileInfo.FullName;
                 var dirName = srcFileInfo.Directory.FullName;
 
@@ -161,17 +191,25 @@ $('#jstree').on('changed.jstree', function (e, data) {
 
                 var covFile = outputDir + relSrcFile + ".html";
                 var fileRecords = codeRecordLookup[srcFileName].ToList();
-                GenerateCoverageColourisedFile(srcFileName, relSrcFile, covFile, fileRecords);
 
-                var totalLines = fileRecords.SelectMany(x => x.GetLines()).Distinct().Count();
-                var coveredLines = fileRecords.SelectMany(x => x.GetHitCounts().Keys).Distinct().Count();
-                var covPct = totalLines == 0 ? 0 : 100 * coveredLines / totalLines;
+                if (fileRecords.Count > 0 || !gcovMode ) {
 
-                dirNames.Add(relDirName);
-                fileNodes.Add(String.Format(
+                    GenerateCoverageColourisedFile (srcFileName, relSrcFile, covFile, fileRecords);
+
+                    var totalLines = fileRecords.SelectMany (x => x.GetLines ()).Distinct ().Count ();
+                    var coveredLines = fileRecords.SelectMany (x => x.GetHitCounts ().Keys).Distinct ().Count ();
+                    var covPct = totalLines == 0 ? 0 : 100 * coveredLines / totalLines;
+
+                    if (String.IsNullOrEmpty (relDirName)) {
+                        relDirName = "/";
+                    }
+
+                    dirNames.Add (relDirName);
+                    fileNodes.Add (String.Format (
                         "{{'id':'{0}','parent':'{1}','text':'{2} ({3}%)'}}",
                         relSrcFile, relDirName, srcFileInfo.Name, covPct)
-                    .Replace('\'', '"'));
+                    .Replace ('\'', '"'));
+                }
             }
         }
 
@@ -221,7 +259,10 @@ $('#jstree').on('changed.jstree', function (e, data) {
 
         static void Usage()
         {
-            Console.Error.WriteLine("Usage: cov-srchtml COVERAGEDB SRCDIR OUTPUTDIR");
+            Console.Error.WriteLine ("Usage: cov-srchtml COVERAGE SRCDIR OUTPUTDIR");
+            Console.Error.WriteLine ("");
+            Console.Error.WriteLine ("COVERAGE can be a covdb file created by covem or the path ");
+            Console.Error.WriteLine ("to a folder containing a gcc gcov project");
         }
         
         private const string SrcHtmlStyle = @"

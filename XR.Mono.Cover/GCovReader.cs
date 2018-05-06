@@ -97,7 +97,7 @@ namespace XR.Mono.Cover
             var process = new System.Diagnostics.Process ();
             var psi = new System.Diagnostics.ProcessStartInfo ("gcov");
             // grumble, shell quotes grr
-            psi.Arguments = String.Format("-l -s -ifm {0}", notes);
+            psi.Arguments = String.Format("-l -s -ifm {0} -o {1}", notes, Path.GetDirectoryName(notes));
             psi.WorkingDirectory = workdir;
             psi.UseShellExecute = false;
             psi.RedirectStandardOutput = true;
@@ -106,7 +106,7 @@ namespace XR.Mono.Cover
             process.Start();
             process.BeginOutputReadLine();
             process.WaitForExit ();
-            return result;
+            return new List<string>(result);
         }
 
         /// <summary>
