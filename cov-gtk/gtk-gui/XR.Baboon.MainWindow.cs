@@ -10,6 +10,8 @@ namespace XR.Baboon
 		
 		private global::Gtk.Action remapSourcePaths;
 		
+		private global::Gtk.Action openGcovAction;
+		
 		private global::Gtk.VBox vbox1;
 		
 		private global::Gtk.Toolbar toolbar1;
@@ -28,11 +30,19 @@ namespace XR.Baboon
 			// Widget XR.Baboon.MainWindow
 			this.UIManager = new global::Gtk.UIManager ();
 			global::Gtk.ActionGroup w1 = new global::Gtk.ActionGroup ("Default");
-			this.openAction = new global::Gtk.Action ("openAction", null, null, "gtk-open");
+			this.openAction = new global::Gtk.Action ("openAction", global::Mono.Unix.Catalog.GetString ("Open Coverage DB"), null, "gtk-open");
+			this.openAction.HideIfEmpty = false;
+			this.openAction.IsImportant = true;
+			this.openAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Open Coverage DB");
 			w1.Add (this.openAction, null);
-			this.remapSourcePaths = new global::Gtk.Action ("remapSourcePaths", global::Mono.Unix.Catalog.GetString ("Set Source Paths"), null, "gtk-preferences");
+			this.remapSourcePaths = new global::Gtk.Action ("remapSourcePaths", global::Mono.Unix.Catalog.GetString ("Set Source Paths"), global::Mono.Unix.Catalog.GetString ("Alter the source search paths"), "gtk-preferences");
 			this.remapSourcePaths.ShortLabel = global::Mono.Unix.Catalog.GetString ("Set Source Paths");
 			w1.Add (this.remapSourcePaths, null);
+			this.openGcovAction = new global::Gtk.Action ("openGcovAction", global::Mono.Unix.Catalog.GetString ("Open GCov Project"), null, "gtk-open");
+			this.openGcovAction.HideIfEmpty = false;
+			this.openGcovAction.IsImportant = true;
+			this.openGcovAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Open GCov Project");
+			w1.Add (this.openGcovAction, null);
 			this.UIManager.InsertActionGroup (w1, 0);
 			this.AddAccelGroup (this.UIManager.AccelGroup);
 			this.Name = "XR.Baboon.MainWindow";
@@ -45,10 +55,13 @@ namespace XR.Baboon
 			this.vbox1.Name = "vbox1";
 			this.vbox1.Spacing = 6;
 			// Container child vbox1.Gtk.Box+BoxChild
-			this.UIManager.AddUiFromString ("<ui><toolbar name='toolbar1'><toolitem name='openAction' action='openAction'/><toolitem name='remapSourcePaths' action='remapSourcePaths'/></toolbar></ui>");
+			this.UIManager.AddUiFromString ("<ui><toolbar name='toolbar1'><toolitem name='openAction' action='openAction'/><toolitem name='openGcovAction' action='openGcovAction'/><toolitem name='remapSourcePaths' action='remapSourcePaths'/></toolbar></ui>");
 			this.toolbar1 = ((global::Gtk.Toolbar)(this.UIManager.GetWidget ("/toolbar1")));
+			this.toolbar1.TooltipMarkup = "Open a coverage database created by covem";
 			this.toolbar1.Name = "toolbar1";
 			this.toolbar1.ShowArrow = false;
+			this.toolbar1.ToolbarStyle = ((global::Gtk.ToolbarStyle)(3));
+			this.toolbar1.IconSize = ((global::Gtk.IconSize)(3));
 			this.vbox1.Add (this.toolbar1);
 			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.toolbar1]));
 			w2.Position = 0;
@@ -92,6 +105,7 @@ namespace XR.Baboon
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
 			this.openAction.Activated += new global::System.EventHandler (this.OpenCoverageFile);
 			this.remapSourcePaths.Activated += new global::System.EventHandler (this.OnRemapAssemblySource);
+			this.openGcovAction.Activated += new global::System.EventHandler (this.openGcovSelector);
 		}
 	}
 }

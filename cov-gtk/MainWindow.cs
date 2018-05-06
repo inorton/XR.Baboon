@@ -13,16 +13,18 @@ namespace XR.Baboon
 
 		public const string VisitedOnceBG = "#aaffaa";
 		public const string VisitedMoreBG = "#88cc88";
+        public const string NotVisitedBG = "#ffcccc";
 
 
 		public void RenderCoverage (TextBuffer buf, CodeRecord rec)
 		{
 			foreach (var line in rec.GetLines()) {
 				var hits = rec.GetHits (line);
-				if (hits > 0) {
-					var hittag = hits == 1 ? "visited_once" : "visited_more";
-					buf.ApplyTag (hittag, buf.GetIterAtLine (line - 1), buf.GetIterAtLine (line));
-				}
+                string tag = "visited_never";
+                if (hits > 0) {
+                    tag = hits == 1 ? "visited_once" : "visited_more";
+                }
+                buf.ApplyTag (tag, buf.GetIterAtLine (line - 1), buf.GetIterAtLine (line));
 			}
 		}
 
@@ -83,15 +85,17 @@ namespace XR.Baboon
 
 			TextTag visitedOnce = new TextTag ("visited_once") { Background = VisitedOnceBG };
 			TextTag visitedMore = new TextTag ("visited_more") { Background = VisitedMoreBG };
+            TextTag visitedNever = new TextTag ("visited_never") { Background = NotVisitedBG };
 			buf.TagTable.Add (visitedOnce);
 			buf.TagTable.Add (visitedMore);
+            buf.TagTable.Add (visitedNever);
 			// buf.HighlightSyntax = true;
 			buf.Text = System.IO.File.ReadAllText (filename);
 
 			var page = new SourcePage ();
 
 			var sv = new TextView (buf);
-			        
+
 			sv.Editable = false;
 
 			var fp = System.IO.Path.GetFullPath (filename);
@@ -300,5 +304,25 @@ namespace XR.Baboon
 				}
 			}
 		}
+
+        protected void openGcovSelector (object sender, EventArgs e)
+        {
+            var fb = new FileChooserDialog ("Select a folder containg a gcov build", this, 
+                FileChooserAction.SelectFolder, "Cancel", 
+                ResponseType.Cancel, "Select", ResponseType.Accept);
+            fb.Response += (o, args) => fb.Hide ();
+            fb.Run ();
+
+            var topdir = fb.Filename;
+            if (!string.IsNullOrEmpty (topdir) && Directory.Exists (topdir)) {
+
+                var scanner = new GCovReader ();
+                scanner.Scan (topdir);
+                scanner.ProcessGCovData ();
+                Load(scanner.Records);
+            }
+        }
+
+
 	}
 }

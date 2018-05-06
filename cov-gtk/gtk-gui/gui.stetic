@@ -12,7 +12,10 @@
     <action-group name="Default">
       <action id="openAction">
         <property name="Type">Action</property>
-        <property name="Label" translatable="yes" />
+        <property name="HideIfEmpty">False</property>
+        <property name="IsImportant">True</property>
+        <property name="Label" translatable="yes">Open Coverage DB</property>
+        <property name="ShortLabel" translatable="yes">Open Coverage DB</property>
         <property name="StockId">gtk-open</property>
         <signal name="Activated" handler="OpenCoverageFile" />
       </action>
@@ -21,7 +24,17 @@
         <property name="Label" translatable="yes">Set Source Paths</property>
         <property name="ShortLabel" translatable="yes">Set Source Paths</property>
         <property name="StockId">gtk-preferences</property>
+        <property name="Tooltip" translatable="yes">Alter the source search paths</property>
         <signal name="Activated" handler="OnRemapAssemblySource" />
+      </action>
+      <action id="openGcovAction">
+        <property name="Type">Action</property>
+        <property name="HideIfEmpty">False</property>
+        <property name="IsImportant">True</property>
+        <property name="Label" translatable="yes">Open GCov Project</property>
+        <property name="ShortLabel" translatable="yes">Open GCov Project</property>
+        <property name="StockId">gtk-open</property>
+        <signal name="Activated" handler="openGcovSelector" />
       </action>
     </action-group>
     <property name="MemberName" />
@@ -37,9 +50,13 @@
         <child>
           <widget class="Gtk.Toolbar" id="toolbar1">
             <property name="MemberName" />
+            <property name="Tooltip">Open a coverage database created by covem</property>
             <property name="ShowArrow">False</property>
+            <property name="ButtonStyle">BothHoriz</property>
+            <property name="IconSize">LargeToolbar</property>
             <node name="toolbar1" type="Toolbar">
               <node type="Toolitem" action="openAction" />
+              <node type="Toolitem" action="openGcovAction" />
               <node type="Toolitem" action="remapSourcePaths" />
             </node>
           </widget>
