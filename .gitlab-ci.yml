@@ -1,0 +1,7 @@
+build:
+  image: ubuntu:16.04
+  script:
+    - |
+    bash cicd/setup_ubuntu.sh
+    make
+    find . -type f -name '*.exe'
