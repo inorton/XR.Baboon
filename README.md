@@ -93,6 +93,15 @@ significantly.
 
 `$HitCount=false`
 
+Attaching to an existent process
+=================================
+
+baboon can be attached to an existent process as Mono Soft-Mode Debugger. Eg,
+
+`$ /home/inb/tmp/covem -a myserver.exe 127.0.0.1 19000`
+
+where `127.0.0.1` is the address and `19000` is the port number.
+
 Results
 ========
 

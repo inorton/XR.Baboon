@@ -18,6 +18,29 @@ namespace XR.Mono.Cover
 			var args = new List<string> {program};
 			args.AddRange (arguments);
 
+            var rv = new CoverHost ( args.ToArray() );
+            PrepareHost( rv, covfile );
+			return rv;
+		}
+
+		public static CoverHost CreateHost (string covfile, System.Net.IPEndPoint ip)
+		{
+            if (covfile == null)
+                throw new ArgumentNullException ("covfile");
+
+			if (ip == null)
+				throw new ArgumentNullException ("ip");
+
+            var rv = new CoverHost ( ip );
+            PrepareHost( rv, covfile );
+			return rv;
+        }
+
+        private static void PrepareHost (CoverHost host, string covfile)
+        {
+            if (covfile == null)
+                throw new ArgumentNullException ("covfile");
+
             var data = new CodeRecordData();
             data.Open( covfile );
 
@@ -27,11 +50,8 @@ namespace XR.Mono.Cover
             data.SaveMeta("dbfile", covfile);
             data.SaveMeta("testmachine", Environment.MachineName );
 
-            var rv = new CoverHost ( args.ToArray() ) { 
-                DataStore = data,
-                LogFile = log,
-            };
-			return rv;
-		}
+            host.DataStore = data;
+            host.LogFile = log;
+        }
 	}
 }

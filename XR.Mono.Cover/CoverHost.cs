@@ -52,10 +52,18 @@ namespace XR.Mono.Cover
 
         string[] cmdargs;
 
-        public CoverHost (params string[] args)
+        public CoverHost (params string[] args) : this( VirtualMachineManager.Launch (args, new LaunchOptions() { AgentArgs = "suspend=y" } ) )
         {
             cmdargs = args;
-            VirtualMachine = VirtualMachineManager.Launch (args, new LaunchOptions() { AgentArgs = "suspend=y" } );
+        }
+
+        public CoverHost (System.Net.IPEndPoint ip) : this( VirtualMachineManager.Connect(ip) )
+        {
+        }
+
+        private CoverHost (VirtualMachine virtualMachine)
+        {
+            VirtualMachine = virtualMachine;
             VirtualMachine.EnableEvents (
                 EventType.VMStart,
 				EventType.VMDeath,
@@ -272,7 +280,9 @@ namespace XR.Mono.Cover
 
         public void Cover (params string[] typeMatchPatterns)
         {
-            DataStore.SaveMeta("commandline", string.Join(" ", cmdargs));
+            if ( cmdargs != null )
+                DataStore.SaveMeta("commandline", string.Join(" ", cmdargs));
+
             DataStore.SaveMeta("started", DateTime.Now.ToString("s") );
             for ( int i = 0; i < typeMatchPatterns.Length; i++ )
             {
@@ -289,7 +299,11 @@ namespace XR.Mono.Cover
                 var b = VirtualMachine.CreateAssemblyLoadRequest();
                 b.Enable();
 
-                Resume ();
+                try {
+                    Resume ();
+                } catch (InvalidOperationException) {
+                    // perhaps attaching to running process
+                }
 
                 do {
                     var evts = VirtualMachine.GetNextEventSet ();
@@ -318,7 +332,7 @@ namespace XR.Mono.Cover
 
                         }
                     }
-                    if (VirtualMachine.TargetProcess.HasExited) {
+                    if (VirtualMachine.TargetProcess != null && VirtualMachine.TargetProcess.HasExited) {
                         Log ( "debugee has exited" );
                         break;
                     }
@@ -333,7 +347,7 @@ namespace XR.Mono.Cover
                     f.Write (ex.ToString ());
                 }
             } finally {
-                if ( !VirtualMachine.Process.HasExited && !VirtualMachine.Process.WaitForExit (10000) )
+                if ( VirtualMachine.TargetProcess != null && !VirtualMachine.Process.HasExited && !VirtualMachine.Process.WaitForExit (10000) )
                 {
                     Log ("vm still running, kill now");
 					VirtualMachine.Process.Kill();
