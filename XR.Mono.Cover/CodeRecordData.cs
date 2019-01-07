@@ -45,11 +45,10 @@ namespace XR.Mono.Cover
             using ( var tx = con.BeginTransaction() )
             using ( var cmd = new SqliteCommand( con ) ){
                 cmd.Transaction = tx;
-                cmd.CommandText = @"SELECT fullname, assembly, sourcefile, classname, name FROM methods";
+                cmd.CommandText = @"SELECT assembly, sourcefile, classname, name FROM methods";
                 using ( var sth = cmd.ExecuteReader() ) {
                     while ( sth.HasRows && sth.Read() ){
                         var rec = new CodeRecord();
-                        rec.FullMethodName = Convert.ToString( sth["fullname"] );
                         rec.Assembly = Convert.ToString( sth["assembly"] );
                         rec.SourceFile = Convert.ToString( sth["sourcefile"] );
                         rec.ClassName = Convert.ToString( sth["classname"] );
@@ -57,17 +56,19 @@ namespace XR.Mono.Cover
 
                         // get call count
                         var calls = new SqliteCommand( con );
-                        calls.CommandText = "SELECT hits FROM calls WHERE assembly = :ASSEMBLY AND fullname = :FULLNAME";
+                        calls.CommandText = "SELECT hits FROM calls WHERE assembly = :ASSEMBLY AND classname = :CLASSNAME AND name = :NAME";
                         calls.Parameters.Add( new SqliteParameter( ":ASSEMBLY", rec.Assembly ) );
-                        calls.Parameters.Add( new SqliteParameter( ":FULLNAME", rec.FullMethodName ) );
+                        calls.Parameters.Add( new SqliteParameter( ":CLASSNAME", rec.ClassName ) );
+                        calls.Parameters.Add( new SqliteParameter( ":NAME", rec.Name ) );
                         var ccount = Convert.ToInt32( calls.ExecuteScalar() );
                         rec.CallCount = ccount;
 
                         // get lines
                         var lines = new SqliteCommand( con );
-                        lines.CommandText = "SELECT line, hits FROM lines WHERE assembly = :ASSEMBLY AND fullname = :FULLNAME";
+                        lines.CommandText = "SELECT line, hits FROM lines WHERE assembly = :ASSEMBLY AND classname = :CLASSNAME AND name = :NAME";
                         lines.Parameters.Add( new SqliteParameter( ":ASSEMBLY", rec.Assembly ) );
-                        lines.Parameters.Add( new SqliteParameter( ":FULLNAME", rec.FullMethodName ) );
+                        lines.Parameters.Add( new SqliteParameter( ":CLASSNAME", rec.ClassName ) );
+                        lines.Parameters.Add( new SqliteParameter( ":NAME", rec.Name ) );
                         using ( var lsth = lines.ExecuteReader() ){
                             while ( lsth.HasRows && lsth.Read() ) {
                                 var l = Convert.ToInt32( lsth["line"] );
@@ -97,9 +98,8 @@ namespace XR.Mono.Cover
             using ( var tx = con.BeginTransaction() )
             using ( var cmd = new SqliteCommand( con ) ){
                 cmd.Transaction = tx;
-                cmd.CommandText = @"REPLACE INTO methods ( fullname, assembly, sourcefile, classname, name ) 
-                    VALUES ( :FULLNAME, :ASSEMBLY, :SOURCEFILE, :CLASSNAME, :METHNAME )";
-                cmd.Parameters.Add( new SqliteParameter(  ":FULLNAME" ) );
+                cmd.CommandText = @"REPLACE INTO methods ( assembly, sourcefile, classname, name ) 
+                    VALUES ( :ASSEMBLY, :SOURCEFILE, :CLASSNAME, :METHNAME )";
                 cmd.Parameters.Add( new SqliteParameter(  ":ASSEMBLY" ) );
                 cmd.Parameters.Add( new SqliteParameter(  ":SOURCEFILE" ) );
                 cmd.Parameters.Add( new SqliteParameter(  ":CLASSNAME" ) );
@@ -108,7 +108,6 @@ namespace XR.Mono.Cover
                 foreach ( var newmethod in methods ) {
                     if ( newmethod.Saved ) continue;
 
-                    cmd.Parameters[":FULLNAME"].Value = newmethod.FullMethodName;
                     cmd.Parameters[":ASSEMBLY"].Value =  newmethod.Assembly;
                     cmd.Parameters[":SOURCEFILE"].Value = newmethod.SourceFile;
                     cmd.Parameters[":CLASSNAME"].Value = newmethod.ClassName;
@@ -129,27 +128,30 @@ namespace XR.Mono.Cover
             using ( var chits = new SqliteCommand( con ) )
             using ( var ccalls = new SqliteCommand( con ) ){
                 chits.Transaction = tx;
-                chits.CommandText = @"REPLACE INTO lines ( fullname, assembly, line, hits ) 
-                        VALUES ( :FULLNAME, :ASSEMBLY, :LINE, :HITS )";
-                chits.Parameters.Add( new SqliteParameter( ":FULLNAME" ) );
+                chits.CommandText = @"REPLACE INTO lines ( assembly, classname, name, line, hits ) 
+                        VALUES ( :ASSEMBLY, :CLASSNAME, :NAME, :LINE, :HITS )";
                 chits.Parameters.Add( new SqliteParameter( ":ASSEMBLY" ) );
+                chits.Parameters.Add( new SqliteParameter( ":CLASSNAME" ) );
+                chits.Parameters.Add( new SqliteParameter( ":NAME" ) );
                 chits.Parameters.Add( new SqliteParameter( ":LINE" ) );
                 chits.Parameters.Add( new SqliteParameter( ":HITS" ) );
 
 
                 ccalls.Transaction = tx;
-                ccalls.CommandText = @"REPLACE INTO calls ( fullname, assembly, hits ) 
-                    VALUES ( :FULLNAME, :ASSEMBLY, :HITS )";
-                ccalls.Parameters.Add( new SqliteParameter( ":FULLNAME" ) );
+                ccalls.CommandText = @"REPLACE INTO calls ( assembly, classname, name, hits ) 
+                    VALUES ( :ASSEMBLY, :CLASSNAME, :NAME, :HITS )";
                 ccalls.Parameters.Add( new SqliteParameter( ":ASSEMBLY" ) );
+                ccalls.Parameters.Add( new SqliteParameter( ":CLASSNAME" ) );
+                ccalls.Parameters.Add( new SqliteParameter( ":NAME" ) );
                 ccalls.Parameters.Add( new SqliteParameter( ":HITS" ) );
                 
                 foreach ( var method in methods )
                 {
                     if ( method.Saved ) continue;
-                    CoverHost.Singleton.Log("saving {0}", method.FullMethodName );
-                    ccalls.Parameters[":FULLNAME"].Value = method.FullMethodName;
+                    CoverHost.Singleton.Log("saving {0}:{1}", method.ClassName, method.Name );
                     ccalls.Parameters[":ASSEMBLY"].Value =  method.Assembly;
+                    ccalls.Parameters[":CLASSNAME"].Value = method.ClassName;
+                    ccalls.Parameters[":NAME"].Value = method.Name;
                     ccalls.Parameters[":HITS"].Value = method.CallCount;
                     ccalls.ExecuteNonQuery();
 
@@ -158,8 +160,9 @@ namespace XR.Mono.Cover
                         var hits = method.GetHits(line);
                         
                         if ( hits > 0 || zerohits ){
-                            chits.Parameters[":FULLNAME"].Value = method.FullMethodName;
                             chits.Parameters[":ASSEMBLY"].Value = method.Assembly;
+                            chits.Parameters[":CLASSNAME"].Value = method.ClassName;
+                            chits.Parameters[":NAME"].Value = method.Name;
                             chits.Parameters[":LINE"].Value = line;
                             chits.Parameters[":HITS"].Value = hits;
                             chits.ExecuteNonQuery();
@@ -209,14 +212,14 @@ namespace XR.Mono.Cover
             if (checkedDb)
                 return;
 
-            NonQuery( @"CREATE TABLE IF NOT EXISTS methods ( fullname TEXT, sourcefile TEXT, classname TEXT, name TEXT, assembly TEXT )" );
-            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS methods_idx ON methods ( fullname, assembly )" );
+            NonQuery( @"CREATE TABLE IF NOT EXISTS methods ( sourcefile TEXT, classname TEXT, name TEXT, assembly TEXT )" );
+            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS methods_idx ON methods ( assembly, classname, name )" );
 
-            NonQuery( @"CREATE TABLE IF NOT EXISTS calls ( fullname TEXT, assembly TEXT, hits INTEGER )" );
-            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS calls_idx ON calls ( fullname, assembly )" );
+            NonQuery( @"CREATE TABLE IF NOT EXISTS calls ( classname TEXT, name TEXT, assembly TEXT, hits INTEGER )" );
+            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS calls_idx ON calls ( assembly, classname, name )" );
 
-            NonQuery( @"CREATE TABLE IF NOT EXISTS lines ( fullname TEXT, assembly TEXT, line INTEGER, hits INTEGER )" );
-            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS lines_idx ON lines ( fullname, assembly, line )" );
+            NonQuery( @"CREATE TABLE IF NOT EXISTS lines ( classname TEXT, name TEXT, assembly TEXT, line INTEGER, hits INTEGER )" );
+            NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS lines_idx ON lines ( assembly, classname, name, line )" );
 
             NonQuery( @"CREATE TABLE IF NOT EXISTS meta ( item TEXT, val TEXT )" );
             NonQuery( @"CREATE UNIQUE INDEX IF NOT EXISTS meta_idx ON meta ( item )" );

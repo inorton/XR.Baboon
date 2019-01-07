@@ -181,8 +181,6 @@ namespace XR.Mono.Cover
                 record.Name = Path.GetFileName (record.SourceFile);
                 record.ClassName = Path.GetDirectoryName(relpath);
 
-                record.FullMethodName = relpath;
-
                 // add to the data 
                 Records.Add(record);
             }

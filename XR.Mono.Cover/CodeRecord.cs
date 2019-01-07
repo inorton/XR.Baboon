@@ -14,7 +14,6 @@ namespace XR.Mono.Cover
         public string Assembly { get; set; }
         public string ClassName { get; set; }
         public string Name { get; set; }
-        public string FullMethodName { get; set; }
         public int CallCount { get; set; }
 
         public bool Saved{ get; set; }
@@ -71,7 +70,7 @@ namespace XR.Mono.Cover
 
         public override string ToString ()
         {
- return String.Format ("{0}:{1},Calls={2},Coverage={3:00.0}%,{4}", ClassName, Name, CallCount, 100 * Coverage, FullMethodName);
+ return String.Format ("{0}:{1},Calls={2},Coverage={3:00.0}%", ClassName, Name, CallCount, 100 * Coverage);
         }
 
         public int[] GetLines()

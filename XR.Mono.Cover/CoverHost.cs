@@ -23,7 +23,7 @@ namespace XR.Mono.Cover
 
         public VirtualMachine VirtualMachine { get; private set; }
 
-        Dictionary<string, CodeRecord> records = new Dictionary<string, CodeRecord> ();
+        Dictionary<int, CodeRecord> records = new Dictionary<int, CodeRecord> ();
 
         List<Regex> typeMatchers = new List<Regex> ();
 
@@ -33,7 +33,7 @@ namespace XR.Mono.Cover
 
         public bool HitCount { get; set; } = true;
 
-
+        readonly Regex TypeFullNameGenericParameters = new Regex(@"\[(?:[^\[\]]|(?<parameter>\[)|(?<-parameter>\]))+(?(parameter)(?!))\]");
         long logcount = 0;
 
         public void Log( string fmt, params object[] args )
@@ -66,7 +66,7 @@ namespace XR.Mono.Cover
             Singleton = this;
         }
 
-        Dictionary<string,List<BreakPoint>> bps = new Dictionary<string, List<BreakPoint>> ();
+        Dictionary<MethodMirror,List<BreakPoint>> bps = new Dictionary<MethodMirror, List<BreakPoint>> ();
         Dictionary<BreakpointEventRequest,BreakPoint> rbps = new Dictionary<BreakpointEventRequest, BreakPoint> ();
 
         HashSet <string> loadedTypes = new HashSet<string>();
@@ -148,32 +148,31 @@ namespace XR.Mono.Cover
             // make a record for all methods defined by this type
             foreach (var m in meths) {
                 CodeRecord rec;
-                if (!records.TryGetValue (m.FullName, out rec)) {
+                if (!records.TryGetValue (m.MetadataToken, out rec)) {
                     Log("adding matched method {0}",m.FullName);
                     rec = new CodeRecord () { 
-                        ClassName = m.DeclaringType.CSharpName,
+                        ClassName = TypeFullNameGenericParameters.Replace(m.DeclaringType.CSharpName, ""),
                         Assembly = m.DeclaringType.Assembly.GetName().FullName,
                         Name = m.Name,
-                        FullMethodName = m.FullName,
                         SourceFile = m.SourceFile,
                     };
                     rec.AddLines( m.LineNumbers.ToArray() );
                     
-                    if (!bps.ContainsKey (m.FullName)) {
-                        bps [m.FullName] = new List<BreakPoint> ();
-                        // add a break on each line
-                        Log("adding {0} breakpoints", m.Locations.Count);
-                        foreach (var l in m.Locations) {
-                            var bp = VirtualMachine.CreateBreakpointRequest (l);
-                            var b = new BreakPoint () { Location = l, Record = rec, Request = bp };
-                            bps [m.FullName].Add (b);
-                            rbps [bp] = b;
-                            bp.Enabled = true;
-                        }
-                    }
-                    
-                    records.Add (m.FullName, rec);
+                    records.Add (m.MetadataToken, rec);
                     DataStore.RegisterMethod (rec);
+                }
+                    
+                if (!bps.ContainsKey (m)) {
+                    bps [m] = new List<BreakPoint> ();
+                    // add a break on each line
+                    Log("adding {0} breakpoints", m.Locations.Count);
+                    foreach (var l in m.Locations) {
+                        var bp = VirtualMachine.CreateBreakpointRequest (l);
+                        var b = new BreakPoint () { Location = l, Record = rec, Request = bp };
+                        bps [m].Add (b);
+                        rbps [bp] = b;
+                        bp.Enabled = true;
+                    }
                 } 
             }
 
@@ -217,7 +216,7 @@ namespace XR.Mono.Cover
             if (met != null) {
                 CodeRecord rec = null;
                 Log( "call {0}", met.Method.FullName );
-                if (records.TryGetValue (met.Method.FullName, out rec)) {
+                if (records.TryGetValue (met.Method.MetadataToken, out rec)) {
                     rec.CallCount++;
                     //if (rec.Lines.Count > 0) 
                     //    rec.Hit (rec.Lines [0]);
