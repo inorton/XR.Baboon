@@ -363,6 +363,15 @@ namespace XR.Mono.Cover
             }
         }
 
+        public void Detach ( )
+        {
+            VirtualMachine.Detach();
+        }
+
+        public void Exit ( )
+        {
+            VirtualMachine.Exit(0);
+        }
         
         public void SaveData ( )
         {

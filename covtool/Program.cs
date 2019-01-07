@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using Mono.Unix;
+using Mono.Unix.Native;
 using XR.Mono.Cover;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -84,23 +85,31 @@ $HitCount=false
 
         public static void SignalHandler()
         {
-            var sig = new UnixSignal( Mono.Unix.Native.Signum.SIGUSR2 );
-            var sigs = new UnixSignal[] { sig };
+            var sigint = new UnixSignal ( Signum.SIGINT );
+            var sigusr2 = new UnixSignal( Signum.SIGUSR2 );
+            var sigs = new UnixSignal[] { sigint, sigusr2 };
             var covertool = MainClass.covertool;
 
             while (covertool != null) {
-                UnixSignal.WaitAny( sigs, new TimeSpan(0,1,0) );
-                covertool.SaveData();
+                if ( UnixSignal.WaitAny( sigs, new TimeSpan(0,1,0) ) == 0 ) {
+                    if ( attach )
+                        covertool.Detach();
+                    else
+                        covertool.Exit();
+                } else {
+                    covertool.SaveData();
+                }
+
                 covertool = Volatile.Read(ref MainClass.covertool);
             }
         }
 
+        static bool attach = false;
         static Process debugee = null;
         static CoverHost covertool = null;
 
 		public static int Main (string[] vargs)
 		{
-            var attach = false;
             var index = 0;
 
             while (index < vargs.Length)

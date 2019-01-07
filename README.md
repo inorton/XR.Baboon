@@ -93,6 +93,9 @@ significantly.
 
 `$HitCount=false`
 
+The covering process may be interrupted by sending baboon _SIGINT_. The results
+will still be saved.
+
 Attaching to an existent process
 =================================
 
