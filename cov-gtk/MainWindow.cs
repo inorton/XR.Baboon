@@ -223,7 +223,7 @@ namespace XR.Baboon
 
 						// assuming it is open, scroll to the thing we clicked
 						if (sourceviews.TryGetValue (localfile, out sv)) {
-							var tm = new TextMark (rec.FullMethodName, true);
+							var tm = new TextMark (rec.Name, true);
 							var iter = sv.Buffer.GetIterAtLine (rec.GetLines () [0] - 1);
 
 							sv.Buffer.AddMark (tm, iter);

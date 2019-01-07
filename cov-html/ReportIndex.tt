@@ -69,7 +69,7 @@ foreach ( var tname in GetTypes() ) {
     if ( cov < 0 ) continue;
 #>
 <tr>
-<td><#= m.FullMethodName #></td>
+<td><#= m.Name #></td>
 <td align="right"><#= m.CallCount #></td>
 <td align="right"><#= m.GetLines().Length #></td>
 <td align="right"><#= m.GetHits() #></td>
