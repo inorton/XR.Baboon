@@ -278,7 +278,16 @@ namespace XR.Mono.Cover
             return false;
         }
 
-        public void Cover (params string[] typeMatchPatterns)
+        ThreadMirror GetThread (string name)
+        {
+            foreach (var mirror in VirtualMachine.GetThreads())
+                if ( mirror.Name == name )
+                    return mirror;
+
+            return null;
+        }
+
+        public void Cover (string invokeMethod, string invokeThread, params string[] typeMatchPatterns)
         {
             if ( cmdargs != null )
                 DataStore.SaveMeta("commandline", string.Join(" ", cmdargs));
@@ -297,7 +306,25 @@ namespace XR.Mono.Cover
 
             try {
                 var b = VirtualMachine.CreateAssemblyLoadRequest();
+                var entry = VirtualMachine.CreateMethodEntryRequest ();
                 b.Enable();
+
+                if ( invokeMethod != null && invokeThread != null ) {
+                    VirtualMachine.Suspend();
+                    entry.Enabled = true;
+
+                    var dot = invokeMethod.LastIndexOf(".", StringComparison.Ordinal);
+                    var type = VirtualMachine.GetTypes(invokeMethod.Substring(0, dot), false)[0];
+
+                    Log ($"invoking {invokeMethod} on {invokeThread}");
+                    type.BeginInvokeMethod(
+                        GetThread(invokeThread),
+                        type.GetMethod(invokeMethod.Substring (dot + 1)),
+                        new Value [] { },
+                        InvokeOptions.None,
+                        result => type.EndInvokeMethod(result),
+                        null);
+                }
 
                 try {
                     Resume ();
@@ -323,9 +350,12 @@ namespace XR.Mono.Cover
 
                         if (e is VMDisconnectEvent)
                             return;
+
+                        if (e is MethodEntryEvent)
+                            entry.Enabled = false;
                     }
 
-                    if (evts.Events.Length > 0) {
+                    if (evts.SuspendPolicy != SuspendPolicy.None) {
                         try {
                             Resume ();
                         } catch (InvalidOperationException) {

@@ -58,6 +58,16 @@ can be enabled in the configuration file like this:
 $HitCount=false
 
 
+A static method may be invoked when baboon is ready by telling the
+IL name of the method and the name of a thread like this:
+
+$InvokeMethod=Namespace.TypeName.MethodName
+$InvokeThread=ThreadName
+
+This is particularly useful to delay the execution of the code you are
+interested in before attaching baboon.
+
+
 ");
             Console.WriteLine();
             Console.WriteLine("results are saved in PROGGRAM.covdb");
@@ -111,6 +121,8 @@ $HitCount=false
 		public static int Main (string[] vargs)
 		{
             var index = 0;
+            string invokeMethod = null;
+            string invokeThread = null;
 
             while (index < vargs.Length)
             {
@@ -150,6 +162,14 @@ $HitCount=false
                             bool.TryParse (l, out hitCount);
                             continue;
                         }
+                        if ( l.StartsWith ( "$InvokeMethod=" ) ) {
+                            invokeMethod = l.Substring("$InvokeMethod=".Length);
+                            continue;
+                        }
+                        if ( l.StartsWith ( "$InvokeThread=" ) ) {
+                            invokeThread = l.Substring("$InvokeThread=".Length);
+                            continue;
+                        }
                         patterns.Add (l);
                     } while ( l != null );
                 }
@@ -180,7 +200,7 @@ $HitCount=false
             ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
 
             covertool.HitCount = hitCount;
-            covertool.Cover (patterns.ToArray ());
+            covertool.Cover (invokeMethod, invokeThread, patterns.ToArray ());
             MainClass.covertool = null;
             covertool.Report ( cfgfile + ".covreport" );
 

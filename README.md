@@ -105,6 +105,16 @@ baboon can be attached to an existent process as Mono Soft-Mode Debugger. Eg,
 
 where `127.0.0.1` is the address and `19000` is the port number.
 
+If the process has a waiting thread, the thread may invoke a method when baboon
+is ready by adding the following lines to the config file:
+
+```
+$InvokeMethod=Namespace.TypeName.MethodName
+$InvokeThread=ThreadName
+```
+
+The method may trigger an execution of the code you are interested in.
+
 Results
 ========
 
