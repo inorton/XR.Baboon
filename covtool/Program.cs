@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using Mono.Unix;
+using Mono.Unix.Native;
 using XR.Mono.Cover;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -15,10 +17,19 @@ namespace Covtool
         public static int Usage()
         {
             Console.WriteLine("Usage: covem PROGRAM ARGUMENTS");
-            Console.WriteLine(@"
-PROGRAM should be the path to your c# exe (not a shell script)
+            Console.WriteLine(@"Usage: covem PROGRAM ARGUMENTS
+       covem -a PROGRAM ADDRESS PORT
 
-Pass covem the same options you would pass to your program.
+Launching PROGRAM on covem:
+ PROGRAM should be the path to your c# exe (not a shell script)
+
+ Pass covem the same options you would pass to your program.
+
+Attaching to an existent process:
+ Pass -a as the first argument.
+ PROGRAM should be a convenient string to identify your program.
+ ADDRESS should be an IP address the process listening to.
+ PORT should be a TCP port the process listening to.
 
 By default coverage will not be recorded. To choose the 
 namespaces covered, create a text file containing a list of types 
@@ -45,6 +56,16 @@ Generating simple line coverage information instead of hit counting
 can be enabled in the configuration file like this:
 
 $HitCount=false
+
+
+A static method may be invoked when baboon is ready by telling the
+IL name of the method and the name of a thread like this:
+
+$InvokeMethod=Namespace.TypeName.MethodName
+$InvokeThread=ThreadName
+
+This is particularly useful to delay the execution of the code you are
+interested in before attaching baboon.
 
 
 ");
@@ -74,29 +95,48 @@ $HitCount=false
 
         public static void SignalHandler()
         {
-            var sig = new UnixSignal( Mono.Unix.Native.Signum.SIGUSR2 );
-            var sigs = new UnixSignal[] { sig };
+            var sigint = new UnixSignal ( Signum.SIGINT );
+            var sigusr2 = new UnixSignal( Signum.SIGUSR2 );
+            var sigs = new UnixSignal[] { sigint, sigusr2 };
+            var covertool = MainClass.covertool;
 
-            do {
-                UnixSignal.WaitAny( sigs, new TimeSpan(0,1,0) );
-                covertool.SaveData();
-            } while ( debugee != null && !debugee.HasExited );
+            while (covertool != null) {
+                if ( UnixSignal.WaitAny( sigs, new TimeSpan(0,1,0) ) == 0 ) {
+                    if ( attach )
+                        covertool.Detach();
+                    else
+                        covertool.Exit();
+                } else {
+                    covertool.SaveData();
+                }
+
+                covertool = Volatile.Read(ref MainClass.covertool);
+            }
         }
 
+        static bool attach = false;
         static Process debugee = null;
         static CoverHost covertool = null;
 
 		public static int Main (string[] vargs)
 		{
-            if ( vargs.Length == 0 ) return Usage();
-            if ( Regex.IsMatch( vargs[0], "-h$|-help$" ) ) return Usage();
-            if (!System.IO.File.Exists(vargs[0])) return Usage();
+            var index = 0;
+            string invokeMethod = null;
+            string invokeThread = null;
+
+            while (index < vargs.Length)
+            {
+                if ( Regex.IsMatch( vargs[index], "-h$|-help$" ) ) return Usage();
+                if ( !Regex.IsMatch( vargs[index], "-a$|-attach$" ) ) break;
+
+                attach = true;
+                index++;
+            }
 
             // the first thing is the mono EXE we are running, everything else are args passed to it
             // we do no argument processing at all.
 
-            var program = vargs[0];
-            var args = vargs.Skip(1);
+            var program = vargs[index];
             var patterns = new List<string> ();
 
             // we look in BABOON_CFG for a config file
@@ -122,6 +162,14 @@ $HitCount=false
                             bool.TryParse (l, out hitCount);
                             continue;
                         }
+                        if ( l.StartsWith ( "$InvokeMethod=" ) ) {
+                            invokeMethod = l.Substring("$InvokeMethod=".Length);
+                            continue;
+                        }
+                        if ( l.StartsWith ( "$InvokeThread=" ) ) {
+                            invokeThread = l.Substring("$InvokeThread=".Length);
+                            continue;
+                        }
                         patterns.Add (l);
                     } while ( l != null );
                 }
@@ -130,16 +178,33 @@ $HitCount=false
             CoverHost.RenameBackupFile( cfgfile + ".covdb" );
             CoverHost.RenameBackupFile( cfgfile + ".covreport" );
 
-            covertool = CoverHostFactory.CreateHost ( cfgfile  + ".covdb", program, args.ToArray() );
+            CoverHost covertool;
+
+            if ( attach ) {
+                if ( !IPAddress.TryParse(vargs[index + 1], out var ip) ) return Usage();
+                if ( !int.TryParse(vargs[index + 2], out var port) ) return Usage();
+
+                covertool = CoverHostFactory.CreateHost ( cfgfile  + ".covdb", new IPEndPoint( ip, port ) );
+            } else {
+                if (!System.IO.File.Exists(program)) return Usage();
+
+                var args = vargs.Skip(index);
+                covertool = CoverHostFactory.CreateHost ( cfgfile  + ".covdb", program, args.ToArray() );
+                debugee = covertool.VirtualMachine.Process;
+                ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );
+            }
+
             covertool.DataStore.SaveMeta( "config", cfgfile );
-            debugee = covertool.VirtualMachine.Process;
+
+            MainClass.covertool = covertool;
             ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
-            ThreadPool.QueueUserWorkItem( (x) => PumpStdin(x), null );
+
             covertool.HitCount = hitCount;
-            covertool.Cover (patterns.ToArray ());
+            covertool.Cover (invokeMethod, invokeThread, patterns.ToArray ());
+            MainClass.covertool = null;
             covertool.Report ( cfgfile + ".covreport" );
 
-            return covertool.VirtualMachine.Process.ExitCode;
+            return attach ? 0 : covertool.VirtualMachine.Process.ExitCode;
 		}
 	}
 }

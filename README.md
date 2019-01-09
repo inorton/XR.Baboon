@@ -93,6 +93,28 @@ significantly.
 
 `$HitCount=false`
 
+The covering process may be interrupted by sending baboon _SIGINT_. The results
+will still be saved.
+
+Attaching to an existent process
+=================================
+
+baboon can be attached to an existent process as Mono Soft-Mode Debugger. Eg,
+
+`$ /home/inb/tmp/covem -a myserver.exe 127.0.0.1 19000`
+
+where `127.0.0.1` is the address and `19000` is the port number.
+
+If the process has a waiting thread, the thread may invoke a method when baboon
+is ready by adding the following lines to the config file:
+
+```
+$InvokeMethod=Namespace.TypeName.MethodName
+$InvokeThread=ThreadName
+```
+
+The method may trigger an execution of the code you are interested in.
+
 Results
 ========
 

@@ -22,7 +22,7 @@ namespace UnitTests
             Environment.SetEnvironmentVariable("BABOON_CFG", "testsubject.exe.covcfg" );
             var h = CoverHostFactory.CreateHost ("self.exe.covdb", "covem.exe", "testsubject.exe");
 
-            h.Cover ("assembly:XR.Mono.Cover");
+            h.Cover (null, null, "assembly:XR.Mono.Cover");
 
         }
     }
