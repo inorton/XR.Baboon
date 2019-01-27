@@ -67,10 +67,11 @@ Use `make installbundle` for installing the bundled version.
 Running
 --------
 
-Be sure to deploy the `libsqlite3.so.0` C library wherever you run your app. If
-it is the same machine as the build was done on you neede't worry. Your 'test'
-program/assembly needs to have been built with debugging enabled (you need the
-mdb files) else baboon won't know how to inspect the running code.
+Be sure to deploy the `libsqlite3.so.0` (or `sqlite3.dll` on Windows) C
+library wherever you run your app. If it is the same machine as the build was
+done on you neede't worry. Your 'test' program/assembly needs to have been
+built with debugging enabled (you need the mdb files) else baboon won't know
+how to inspect the running code.
 
 First, we need to create a coverage config file to tell covem what
 classes/types you want to record coverage data for. If you have a called called

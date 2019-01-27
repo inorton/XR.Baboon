@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>XR.Mono.Cover</RootNamespace>
     <AssemblyName>XR.Mono.Cover</AssemblyName>
+    <AssemblySearchPaths>{GAC};$(AssemblySearchPaths)</AssemblySearchPaths>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -34,10 +35,16 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756" />
-    <Reference Include="Mono.Data.Sqlite" />
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Mono.Data.Sqlite">
+      <Private>true</Private>
+    </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="Mono.Debugger.Soft" />
+    <Reference Include="Mono.Debugger.Soft">
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />

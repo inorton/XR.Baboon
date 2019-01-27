@@ -93,6 +93,14 @@ interested in before attaching baboon.
             }
         }
 
+        private static void CancelEventHandler(object sender, ConsoleCancelEventArgs args)
+        {
+            if ( attach )
+                covertool?.Detach();
+            else
+                covertool?.Exit();
+        }
+
         public static void SignalHandler()
         {
             var sigint = new UnixSignal ( Signum.SIGINT );
@@ -179,6 +187,7 @@ interested in before attaching baboon.
             CoverHost.RenameBackupFile( cfgfile + ".covreport" );
 
             CoverHost covertool;
+            Timer timer;
 
             if ( attach ) {
                 if ( !IPAddress.TryParse(vargs[index + 1], out var ip) ) return Usage();
@@ -195,13 +204,30 @@ interested in before attaching baboon.
             }
 
             covertool.DataStore.SaveMeta( "config", cfgfile );
+            covertool.HitCount = hitCount;
 
             MainClass.covertool = covertool;
-            ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
 
-            covertool.HitCount = hitCount;
-            covertool.Cover (invokeMethod, invokeThread, patterns.ToArray ());
-            MainClass.covertool = null;
+            if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) {
+                ThreadPool.QueueUserWorkItem( (x) => SignalHandler(), null );
+                timer = null;
+            } else {
+                Console.CancelKeyPress += CancelEventHandler;
+                timer = new Timer( state => MainClass.covertool?.SaveData(), null, 0, 1000 );
+            }
+
+            try
+            {
+                covertool.Cover (invokeMethod, invokeThread, patterns.ToArray ());
+            } finally {
+                MainClass.covertool = null;
+
+                if (timer != null) {
+                    timer.Dispose();
+                    Console.CancelKeyPress -= CancelEventHandler;
+                }
+            }
+
             covertool.Report ( cfgfile + ".covreport" );
 
             return attach ? 0 : covertool.VirtualMachine.Process.ExitCode;
