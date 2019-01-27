@@ -9,6 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>covtool</RootNamespace>
     <AssemblyName>covem</AssemblyName>
+    <AssemblySearchPaths>{GAC};$(AssemblySearchPaths)</AssemblySearchPaths>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -41,8 +42,12 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Mono.Posix" />
-    <Reference Include="Mono.Debugger.Soft" />
+    <Reference Include="Mono.Posix">
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Mono.Debugger.Soft">
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
