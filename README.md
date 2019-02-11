@@ -95,7 +95,13 @@ significantly.
 `$HitCount=false`
 
 The covering process may be interrupted by sending baboon _SIGINT_. The results
-will still be saved.
+will still be saved. Another way to interrupt the covering process is to specify
+`$TerminatorMethod` in the config file and invoke the method on the covered
+process:
+
+```
+$TerminatorMethod=Namespace.TypeName.MethodName
+```
 
 Attaching to an existent process
 =================================
