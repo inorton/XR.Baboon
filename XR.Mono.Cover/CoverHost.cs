@@ -50,15 +50,20 @@ namespace XR.Mono.Cover
 
         public static CoverHost Singleton { get; private set;}
 
+        public string TerminatorMethod { get; set; }
+
+        readonly bool launched;
         string[] cmdargs;
 
         public CoverHost (params string[] args) : this( VirtualMachineManager.Launch (args, new LaunchOptions() { AgentArgs = "suspend=y" } ) )
         {
+            launched = true;
             cmdargs = args;
         }
 
         public CoverHost (System.Net.IPEndPoint ip) : this( VirtualMachineManager.Connect(ip) )
         {
+            launched = false;
         }
 
         private CoverHost (VirtualMachine virtualMachine)
@@ -239,6 +244,9 @@ namespace XR.Mono.Cover
             var bpe = evt as BreakpointEvent;
             if (bpe != null) {
                 BreakPoint bp = null;
+                if (bpe.Method.FullName == TerminatorMethod) {
+                    Terminate ();
+                }
                 if (rbps.TryGetValue (bpe.Request as BreakpointEventRequest, out bp)) {
                     CodeRecord rec = bp.Record;
                     lock ( DataStore )
@@ -392,14 +400,13 @@ namespace XR.Mono.Cover
             }
         }
 
-        public void Detach ( )
+        public void Terminate ( )
         {
-            VirtualMachine.Detach();
-        }
-
-        public void Exit ( )
-        {
-            VirtualMachine.Exit(0);
+            if ( launched ) {
+                VirtualMachine.Exit(0);
+            } else {
+                VirtualMachine.Detach();
+            }
         }
         
         public void SaveData ( )

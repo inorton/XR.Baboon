@@ -67,6 +67,11 @@ $InvokeThread=ThreadName
 This is particularly useful to delay the execution of the code you are
 interested in before attaching baboon.
 
+baboon can be terminated by calling a method specified with its IL name like this:
+
+$TerminatorMethod=Namespace.TypeName.MethodName
+
+This is particularly useful to terminate baboon but the attached process.
 
 ");
             Console.WriteLine();
@@ -95,10 +100,7 @@ interested in before attaching baboon.
 
         private static void CancelEventHandler(object sender, ConsoleCancelEventArgs args)
         {
-            if ( attach )
-                covertool?.Detach();
-            else
-                covertool?.Exit();
+            covertool?.Terminate();
         }
 
         public static void SignalHandler()
@@ -110,10 +112,7 @@ interested in before attaching baboon.
 
             while (covertool != null) {
                 if ( UnixSignal.WaitAny( sigs, new TimeSpan(0,1,0) ) == 0 ) {
-                    if ( attach )
-                        covertool.Detach();
-                    else
-                        covertool.Exit();
+                    covertool.Terminate();
                 } else {
                     covertool.SaveData();
                 }
@@ -122,15 +121,16 @@ interested in before attaching baboon.
             }
         }
 
-        static bool attach = false;
         static Process debugee = null;
         static CoverHost covertool = null;
 
 		public static int Main (string[] vargs)
 		{
+            var attach = false;
             var index = 0;
             string invokeMethod = null;
             string invokeThread = null;
+            string terminatorMethod = null;
 
             while (index < vargs.Length)
             {
@@ -178,6 +178,10 @@ interested in before attaching baboon.
                             invokeThread = l.Substring("$InvokeThread=".Length);
                             continue;
                         }
+                        if ( l.StartsWith ( "$TerminatorMethod=" ) ) {
+                            terminatorMethod = l.Substring("$TerminatorMethod=".Length);
+                            continue;
+                        }
                         patterns.Add (l);
                     } while ( l != null );
                 }
@@ -205,6 +209,7 @@ interested in before attaching baboon.
 
             covertool.DataStore.SaveMeta( "config", cfgfile );
             covertool.HitCount = hitCount;
+            covertool.TerminatorMethod = terminatorMethod;
 
             MainClass.covertool = covertool;
 
