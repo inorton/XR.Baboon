@@ -4,7 +4,7 @@ INSTDIR=/usr/local/lib/baboon
 BINDIR=/usr/local/bin
 
 all:
-	xbuild /property:Configuration=Release 
+	msbuild /property:Configuration=Release 
 
 makebundle: all
 	bash make_bundle.sh

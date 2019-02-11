@@ -1,7 +1,8 @@
 build:
-  image: ubuntu:16.04
+  image: mono:5.18
   script:
     - |
-      bash cicd/setup_ubuntu.sh
+      apt-get update
+      apt-get install -y libgtk2.0-cil-dev make
       make
       find . -type f -name '*.exe'
