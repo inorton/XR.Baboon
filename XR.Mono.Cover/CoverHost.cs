@@ -198,6 +198,21 @@ namespace XR.Mono.Cover
             var tl = evt as TypeLoadEvent;
             if (tl != null) {
                 Log("TypeLoadEvent {0}", tl.Type.FullName);
+
+                if (TerminatorMethod != null)
+                {
+                    var dot = TerminatorMethod.LastIndexOf('.');
+
+                    if (dot >= 0 && tl.Type.FullName == TerminatorMethod.Substring(0, dot)) {
+                        var m = tl.Type.GetMethod(TerminatorMethod.Substring(dot + 1));
+
+                        if (m != null && m.Locations.Count > 0) {
+                            var bp = VirtualMachine.CreateBreakpointRequest (m.Locations[0]);
+                            bp.Enabled = true;
+                        }
+                    }
+                }
+
                 foreach (var rx in typeMatchers) {
                     if (rx.IsMatch (tl.Type.FullName)) {
                         MarkType( tl.Type );
@@ -239,14 +254,14 @@ namespace XR.Mono.Cover
             return met != null;
         }
 
-        public bool CheckBreakPointRequest (Event evt)
+        public bool CheckBreakPointRequest (Event evt, out bool terminate)
         {
             var bpe = evt as BreakpointEvent;
-            if (bpe != null) {
+            if (bpe == null) {
+                terminate = false;
+            } else {
+                terminate = $"{bpe.Method.DeclaringType.FullName}.{bpe.Method.Name}" == TerminatorMethod;
                 BreakPoint bp = null;
-                if (bpe.Method.FullName == TerminatorMethod) {
-                    Terminate ();
-                }
                 if (rbps.TryGetValue (bpe.Request as BreakpointEventRequest, out bp)) {
                     CodeRecord rec = bp.Record;
                     lock ( DataStore )
@@ -343,8 +358,14 @@ namespace XR.Mono.Cover
                     var evts = VirtualMachine.GetNextEventSet ();
                     foreach (var e in evts.Events) {
 
-                        if (CheckBreakPointRequest (e))
+                        if (CheckBreakPointRequest (e, out var terminate)) {
+                            if (terminate) {
+                                Terminate();
+                                return;
+                            }
+
                             continue;
+                        }
 
                         //if (CheckMethodRequests (e))
                         //    continue;
