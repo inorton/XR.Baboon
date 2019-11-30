@@ -18,6 +18,8 @@ clean:
 	rm -rf cov-srchtml/bin
 	rm -rf covtool/obj
 	rm -rf covtool/bin
+	rm -rf cov-json/obj
+	rm -rf cov-csv/obj
 	rm -rf XR.Mono.Cover/obj
 	rm -rf XR.Mono.Cover/bin
 
@@ -26,6 +28,8 @@ install_generic:
 	install covtool/bin/XR.Mono.Cover.dll $(DESTDIR)$(INSTDIR)
 	install covtool/bin/cov-gtk.exe $(DESTDIR)$(INSTDIR) || true
 	install covtool/bin/cov-html.exe $(DESTDIR)$(INSTDIR)
+	install covtool/bin/cov-json.exe $(DESTDIR)$(INSTDIR)
+	install covtool/bin/cov-csv.exe $(DESTDIR)$(INSTDIR)
 	install covtool/bin/cov-srchtml.exe $(DESTDIR)$(INSTDIR)
 	install scripts/cov-gtk $(DESTDIR)$(BINDIR)
 	install scripts/cov-html $(DESTDIR)$(BINDIR)

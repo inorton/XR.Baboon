@@ -2,7 +2,7 @@
 set -e
 START=`pwd`
 pushd covtool/bin/
-MONO_PATH=. mkbundle -c -o host.c -oo covem.o  --deps covem.exe
+MONO_PATH=. mkbundle -c -o host.c -oo covem.o  --deps covem.exe --sdk /usr --no-machine-config --config /etc/mono
 
 
 SQLITE=/usr/lib/i386-linux-gnu/libsqlite3.a
