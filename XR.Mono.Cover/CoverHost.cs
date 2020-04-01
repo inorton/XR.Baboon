@@ -157,7 +157,7 @@ namespace XR.Mono.Cover
 
             loadedTypes.Add( t.FullName );
 
-            var meths = t.GetMethods ();
+            var meths = t.GetMethods ().Where ( m => m.IsPublic);
             // make a record for all methods defined by this type
             foreach (var m in meths) {
                 CodeRecord rec;
