@@ -13,10 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-html", "cov-html\cov-html.csproj", "{EBDDFD0F-DE67-46E2-B869-E8B0F9B90635}"
 EndProject
-Project("{dAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-json", "cov-json\cov-json.csproj", "{EBDDFD0F-DE67-46E2-B869-E8B0F9B90635}"
-EndProject
-Project("{eAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-csv", "cov-csv\cov-csv.csproj", "{EBDDFD0F-DE67-46E2-B869-E8B0F9B90635}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-srchtml", "cov-srchtml\cov-srchtml.csproj", "{79D09B1A-C3DC-436D-BA5E-19A41DBFEE13}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cov-json", "cov-json\cov-json.csproj", "{C31AAB94-A624-4E3A-B69B-7C869C349430}"
